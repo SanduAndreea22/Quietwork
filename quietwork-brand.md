@@ -1,6 +1,6 @@
 # Quietwork — fisa de brand
 
-Piesa de portofoliu (fictiva). Platforma de cursuri pentru un specialist in dezvoltare personala. Continut site: engleza.
+Piesa de portofoliu (fictiva). Platforma de programe live (Zoom) pentru un specialist in dezvoltare personala. Continut site: engleza.
 
 ## Nume
 
@@ -9,17 +9,32 @@ Ideea din spate: schimbarea personala e munca linistita, facuta putin cate putin
 
 ## Ce vinde
 
-Cursuri video pe obiceiuri si claritate personala, impartite pe module si lectii. Trei cursuri de exemplu (propuneri, se pot schimba):
+Totul se intampla live, pe Zoom. Fara cursuri video preinregistrate.
+
+**Programe de 2 luni** (produsul principal) — grupuri mici, o intalnire pe saptamana:
+
+- 8 intalniri saptamanale, 75 min, aceeasi zi si ora (ex: miercurea, 19:00 CET)
+- maxim 12 locuri per grupa; pe pagina se vad locurile ramase si "Sold out" cand se umple
+- fiecare program are grupe cu data de start (ex: "November group", 4 Nov – 23 Dec)
+- plata: integral **€240** sau in 2 rate lunare **2 × €130** (a doua rata se ia automat dupa o luna, apoi nimic)
+- intre intalniri: exercitiul saptamanii, notitele lui Elena dupa fiecare sesiune, inregistrarea sesiunii (YouTube unlisted, vizibila doar cursantilor inscrisi, a doua zi)
+- dupa final, inregistrarile si notitele raman in cont
+
+Trei programe (propuneri, se pot schimba):
 
 - **Small Habits, Real Change** — cum construiesti rutine care chiar raman
 - **Boundaries Without Guilt** — cum spui nu fara sa te simti vinovat
 - **Quiet Confidence** — incredere in sine fara sa trebuiasca sa fii zgomotos
 
-Plus un workshop live:
+**Workshop live** (o singura seara, punct de intrare):
 
-- **Boundaries Without Guilt — Live** — o sesiune de 90 de minute, 20 de locuri, data si ora fixe. Sesiunea are loc pe Zoom/Google Meet; platforma vinde locul si arata linkul doar celor care au platit. Pe pagina se vad locurile ramase si "Sold out" cand se umple. In "cursurile mele" apare cu numaratoare inversa, iar linkul devine activ cu 15 minute inainte. Fara emailuri de reminder.
+- **Boundaries Without Guilt — Live** — 90 de minute, 20 de locuri, **€35**, data si ora fixe
 
-Fara promisiuni medicale, fara limbaj de terapie.
+Reguli comune pentru tot ce e live: platforma vinde locul si arata linkul de Zoom doar celor care au platit. In "My programs" apare numaratoarea inversa pana la urmatoarea intalnire, iar linkul devine activ cu 15 minute inainte. Fara emailuri de reminder.
+
+Preturile sunt propuneri pentru portofoliu si se pot schimba din admin.
+
+Fara promisiuni medicale, fara limbaj de terapie. Pe site apare explicit: "These are practice groups, not therapy."
 
 ## Paleta
 
@@ -44,7 +59,9 @@ Calm si cald, ca o dimineata linistita: mult spatiu gol, colturi usor rotunjite,
 
 ## Element semnatura
 
-**Firul.** O linie subtire, continua, desenata parca de mana, care trece printre sectiunile paginii. In lectii, acelasi fir devine bara de progres: se "umple" cu albastru pe masura ce cursantul bifeaza lectiile. Leaga vizualul de functia centrala.
+**Firul.** O linie subtire, continua, desenata parca de mana, care trece printre sectiunile paginii. In cont, acelasi fir devine cronologia programului: fiecare intalnire e un nod, iar firul se "umple" cu albastru pe masura ce cursantul bifeaza sesiunile (a participat live sau a vazut inregistrarea). Leaga vizualul de functia centrala.
+
+Albastrul (`#7D9BB8`) e doar pentru fir, progres si detalii grafice, nu pentru text (contrast prea mic pe crem). Text secundar: `#4E5A52`.
 
 ## Reguli de continut
 
