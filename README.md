@@ -10,7 +10,14 @@ A portfolio piece by Andreea Tech. Brand and content rules: [`quietwork-brand.md
 - Pay in full, or in monthly instalments (a Stripe subscription that stops itself after the last payment).
 - The Zoom link is never in the page: `/my/sessions/<id>/join/` redirects to it only for paid members, from 15 minutes before the start.
 - Members get a session page per week: exercise, recording (unlisted YouTube), Elena's notes, and "mark as done". The thread fills in as they go.
-- Elena manages programs, topics, groups, sessions, recordings and notes in the Django admin.
+- After paying, a welcome screen shows the member's seat among the group ("You're 9 of 12") and the first session.
+- "Add to calendar" (.ics) for all sessions, with a reminder 15 minutes before. Events link to the session page, never to Zoom.
+- Every time is also shown in the visitor's own time zone ("19:00 CET · 13:00 for you").
+- Program pages: sessions open to their theme, and a FAQ edited in the admin.
+- Waitlist for full groups and workshops; Elena emails everyone once from the admin when a seat opens.
+- Private reflections per session, and "Your thread": a drawing of the program shaped by the member, saved as an image.
+- Portfolio demo mode: "Explore as a member" opens a throwaway account with sample data, a switch to see the Zoom button open, and a preview of the after-payment screen.
+- Elena manages programs, topics, groups, sessions, recordings, notes, FAQ and the waitlist in the Django admin.
 
 **Stack:** Django 5.2, Django REST Framework, PostgreSQL, Stripe Checkout, WhiteNoise, Gunicorn.
 
@@ -39,7 +46,8 @@ Tests: `DEBUG=1 python manage.py test`
    - Build command: `./build.sh`
    - Start command: `gunicorn config.wsgi:application`
 3. Environment variables: `SECRET_KEY` (long random), `DATABASE_URL`, `SITE_URL` (e.g. `https://quietwork.onrender.com`),
-   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and optionally the `EMAIL_*` settings for password-reset emails.
+   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and the `EMAIL_*` settings (password resets, waitlist emails).
+   Set `DEMO_MODE=1` for the portfolio demo; leave it unset for a real client.
    `ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS` pick up Render's hostname automatically.
 4. In Stripe → Developers → Webhooks, add `https://<your-site>/stripe/webhook/` with these events:
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
