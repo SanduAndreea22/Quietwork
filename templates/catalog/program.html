@@ -32,7 +32,14 @@
       <ol class="timeline">
         {% for s in sessions %}
         <li><span class="dot" aria-hidden="true"></span>
+          {% if s.topic.summary %}
+          <details class="item">
+            <summary><span class="eyebrow">Session {{ s.number }} · {{ s.starts_at|date:"D, j M" }}</span><span class="serif">{{ s.title }}</span></summary>
+            <p class="topic-summary">{{ s.topic.summary|truncatewords:40 }}</p>
+          </details>
+          {% else %}
           <div class="item"><span class="eyebrow">Session {{ s.number }} · {{ s.starts_at|date:"D, j M" }}</span><span class="serif">{{ s.title }}</span></div>
+          {% endif %}
         </li>
         {% endfor %}
       </ol>

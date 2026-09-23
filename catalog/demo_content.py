@@ -16,6 +16,7 @@ from catalog.models import Cohort, Program, SessionTopic, Workshop
 PROGRAMS = [
     {
         "slug": "small-habits-real-change",
+        "summaries": ['Why most new routines fade after a few days, and why that says nothing about you.', 'Shrinking a habit until it fits a tired Tuesday.', 'Tying the new habit to something you already do every day.', "What to do on the days it doesn't happen, without starting over.", 'Looking honestly at what gets in the way, one obstacle at a time.', 'When the first habit holds, choosing a second one carefully.', 'Keeping routines when holidays, illness or a new job change your week.', 'A plan for carrying on alone after the group ends.'],
         "title": "Small Habits, Real Change",
         "tagline": "Build routines that stay with you after the first enthusiastic week.",
         "description": "For people who start strong and lose the thread by week two. Eight weeks with a small group, building one small routine at a time and learning what to do on the days it doesn't happen.",
@@ -30,6 +31,7 @@ PROGRAMS = [
     },
     {
         "slug": "boundaries-without-guilt",
+        "summaries": ["Noticing the yes that comes out before you've had time to think.", 'Counting what each yes takes from your time, energy and mood.', 'Practising a short, clear no out loud, in pairs.', 'Buying time with "Let me check" so you can decide calmly.', None, "Staying steady when someone doesn't like your answer.", 'What to do with the guilt that shows up after a no.', 'Writing your own few rules for what you say yes to from here on.'],
         "title": "Boundaries Without Guilt",
         "tagline": "Learn to say no to what drains you, without the guilt that usually follows.",
         "description": "For people who say yes too often and pay for it later. Eight weeks with a small group, noticing what drains you, saying no clearly, and handling the guilt that shows up afterwards.",
@@ -50,6 +52,7 @@ PROGRAMS = [
     },
     {
         "slug": "quiet-confidence",
+        "summaries": ["Why being quiet isn't the thing to fix.", 'Listing what you already do well, with evidence.', 'Speaking first, once, in a setting that feels safe enough.', 'Saying what you think without the apology in front of it.', 'Taking up a little more room in meetings and conversations.', 'Disagreeing calmly and staying in the conversation.', 'Making a decision without checking it with everyone first.', 'How to keep practising after the eight weeks.'],
         "title": "Quiet Confidence",
         "tagline": "Trust yourself more, without having to be the loudest person in the room.",
         "description": "For people who know more than they say. Eight weeks with a small group, practising speaking up in ways that still feel like you.",
@@ -117,11 +120,15 @@ def _create_cohort(program, start_day, is_open):
 
 
 @transaction.atomic
-def ensure_demo_content():
+def ensure_demo_content(refresh=False):
+    """Create what's missing. With refresh=True, also overwrite the program texts
+    (seed_demo does that; entering the demo never does, so admin edits survive)."""
     now = timezone.now()
     today = timezone.localdate()
+    save = Program.objects.update_or_create if refresh else Program.objects.get_or_create
+    save_topic = SessionTopic.objects.update_or_create if refresh else SessionTopic.objects.get_or_create
     for order, data in enumerate(PROGRAMS):
-        program, _ = Program.objects.update_or_create(
+        program, _ = save(
             slug=data["slug"],
             defaults={
                 "title": data["title"], "tagline": data["tagline"], "description": data["description"],
@@ -129,9 +136,10 @@ def ensure_demo_content():
             },
         )
         details = data.get("details", {})
+        summaries = data.get("summaries", [])
         for number, title in enumerate(data["topics"], start=1):
-            summary, exercise = details.get(number, ("", ""))
-            SessionTopic.objects.update_or_create(
+            summary, exercise = details.get(number, (summaries[number - 1] or "", ""))
+            save_topic(
                 program=program, number=number,
                 defaults={"title": title, "summary": summary, "exercise": exercise},
             )

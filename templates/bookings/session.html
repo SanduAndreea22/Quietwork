@@ -12,7 +12,7 @@
     </div>
     <ol>
       {% for node in nodes %}
-      <li class="{% if node.done %}done{% elif node.session.starts_at > now %}upcoming{% endif %}{% if node.is_next %} next{% endif %}{% if node.session.pk == session.pk %} current{% endif %}">
+      <li class="{% if node.done %}done{% elif node.session.starts_at > now %}upcoming{% endif %}{% if node.is_next %} next{% endif %}{% if node.session.pk == session.pk %} current{% endif %}{% if node.session.pk == just_done %} just-done{% endif %}">
         <a href="{{ node.session.get_absolute_url }}"{% if node.session.pk == session.pk %} aria-current="page"{% endif %}>
           <span class="node" aria-hidden="true">{% if node.done %}✓{% endif %}</span>
           <span class="t">
@@ -75,7 +75,7 @@
           <input type="hidden" name="back" value="{{ request.path }}">
           {% if recap_done %}
             <input type="hidden" name="done" value="0">
-            <button class="pill pill-progress pill-button" type="submit">✓ Marked as done <span class="visually-hidden">(undo)</span></button>
+            <button class="pill pill-progress pill-button{% if recap.pk == just_done %} just-done{% endif %}" type="submit">✓ Marked as done <span class="visually-hidden">(undo)</span></button>
           {% else %}
             <input type="hidden" name="done" value="1">
             <button class="btn btn-progress" type="submit">Mark as done</button>

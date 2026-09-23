@@ -46,7 +46,7 @@
         </div>
         <a class="btn btn-primary" href="{{ p.open_url }}">Open program</a>
       </div>
-      <ol class="thread-h" style="--done: {{ p.thread_fill }}" aria-label="{{ p.done_count }} of {{ p.total }} sessions done">
+      <ol class="thread-h" data-fill-in style="--done: {{ p.thread_fill }}" aria-label="{{ p.done_count }} of {{ p.total }} sessions done">
         {% for node in p.nodes %}
         <li class="{% if node.done %}done{% endif %}{% if node.is_next %} next{% endif %}">
           <a href="{{ node.session.get_absolute_url }}" class="node" aria-label="Session {{ node.session.number }}: {{ node.session.title }}{% if node.done %} (done){% endif %}"></a>

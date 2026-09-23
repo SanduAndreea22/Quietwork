@@ -1,6 +1,10 @@
-// Live countdowns. The server decides when the Zoom link works; this only
-// keeps the numbers fresh and reloads once the join window opens.
+// Small touches. Everything here is optional: without JavaScript the pages are
+// complete and static. Motion is skipped when the visitor prefers less of it.
 (function () {
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Live countdowns. The server decides when the Zoom link works; this only
+  // keeps the numbers fresh and reloads once the join window opens.
   function tick(el) {
     var target = new Date(el.dataset.countdown).getTime();
     var opens = el.dataset.opens ? new Date(el.dataset.opens).getTime() : null;
@@ -13,12 +17,58 @@
     var s = Math.max(Math.floor((target - now) / 1000), 0);
     var parts = { days: Math.floor(s / 86400), hours: Math.floor((s % 86400) / 3600), minutes: Math.floor((s % 3600) / 60) };
     el.querySelectorAll("[data-unit]").forEach(function (n) {
-      n.textContent = String(parts[n.dataset.unit]).padStart(2, "0");
+      var value = String(parts[n.dataset.unit]).padStart(2, "0");
+      if (n.textContent === value) return;
+      n.textContent = value;
+      if (!calm) {
+        n.classList.remove("tick");
+        void n.offsetWidth; // restart the animation
+        n.classList.add("tick");
+      }
     });
   }
+
+  // The thread on Home draws itself as you scroll down the page.
+  function drawThread(svg) {
+    var page = svg.parentElement;
+    function update() {
+      var rect = page.getBoundingClientRect();
+      var seen = (window.innerHeight * 0.85 - rect.top) / rect.height;
+      var shown = Math.min(Math.max(seen, 0.12), 1);
+      svg.style.clipPath = "inset(0 0 " + ((1 - shown) * 100).toFixed(2) + "% 0)";
+    }
+    var queued = false;
+    window.addEventListener("scroll", function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; update(); });
+    }, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  }
+
+  // Seat bars and the progress thread fill in when they come into view.
+  function revealOnView(els) {
+    if (!("IntersectionObserver" in window)) {
+      els.forEach(function (el) { el.classList.add("in-view"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in-view"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.4 });
+    els.forEach(function (el) { io.observe(el); });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
-    var els = document.querySelectorAll("[data-countdown]");
-    els.forEach(tick);
-    if (els.length) setInterval(function () { els.forEach(tick); }, 20000);
+    var clocks = document.querySelectorAll("[data-countdown]");
+    clocks.forEach(tick);
+    if (clocks.length) setInterval(function () { clocks.forEach(tick); }, 20000);
+
+    if (calm) return;
+    document.documentElement.classList.add("motion");
+    document.querySelectorAll("[data-draw-thread]").forEach(drawThread);
+    revealOnView(document.querySelectorAll(".bar, [data-fill-in]"));
   });
 })();

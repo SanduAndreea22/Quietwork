@@ -109,6 +109,7 @@ def session_detail(request, session_id):
     session = _session_for_member(request.user, session_id)
     context = build_session_page(request.user, session, effective_now(request))
     context["time_travel"] = _time_travelling(request)
+    context["just_done"] = request.session.pop("just_done", None)
     return render(request, "bookings/session.html", context)
 
 
@@ -145,6 +146,7 @@ def toggle_done(request, session_id):
         messages.info(request, "You can tick a session off once it has started.")
     elif request.POST.get("done") == "1":
         SessionCompletion.objects.get_or_create(user=request.user, session=session)
+        request.session["just_done"] = session.pk  # the thread animates to it once
     else:
         SessionCompletion.objects.filter(user=request.user, session=session).delete()
     back = request.POST.get("back", "")
