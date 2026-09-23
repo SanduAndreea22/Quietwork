@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
@@ -15,11 +16,18 @@ from django.views.decorators.http import require_POST
 from catalog.models import Cohort, Program, Session, Workshop
 
 from . import services, stripe_gateway
+from .demo import effective_now, is_demo_user
 from .forms import ReserveForm
 from .models import Enrollment, SessionCompletion, StripeEvent, WorkshopBooking
 from .progress import build_dashboard, build_session_page
 
 logger = logging.getLogger(__name__)
+
+
+DEMO_NO_PAYMENT = (
+    "This is a demo account, so no payment is taken. "
+    "Exit the demo and create an account to try the Stripe checkout in test mode."
+)
 
 
 def _start_checkout(request, seat, released, create_checkout, back_url):
@@ -41,6 +49,9 @@ def _start_checkout(request, seat, released, create_checkout, back_url):
 @require_POST
 def reserve_program(request, slug):
     program = get_object_or_404(Program, slug=slug, is_published=True)
+    if is_demo_user(request.user):
+        messages.info(request, DEMO_NO_PAYMENT)
+        return redirect(program)
     form = ReserveForm(request.POST)
     if not form.is_valid():
         messages.error(request, "Please choose how you'd like to pay.")
@@ -60,6 +71,9 @@ def reserve_program(request, slug):
 @require_POST
 def reserve_workshop(request, slug):
     workshop = get_object_or_404(Workshop, slug=slug, is_published=True)
+    if is_demo_user(request.user):
+        messages.info(request, DEMO_NO_PAYMENT)
+        return redirect("/#workshop")
     try:
         seat, released = services.reserve_workshop_seat(request.user, workshop.pk)
     except services.BookingError as exc:
@@ -70,9 +84,17 @@ def reserve_workshop(request, slug):
 
 @login_required
 def my_programs(request):
-    context = build_dashboard(request.user)
+    now = effective_now(request)
+    context = build_dashboard(request.user, now)
+    context["time_travel"] = now != context["now"] or _time_travelling(request)
     context["checkout_success"] = request.GET.get("checkout") == "success"
     return render(request, "bookings/my_programs.html", context)
+
+
+def _time_travelling(request):
+    from .demo import SESSION_KEY
+
+    return is_demo_user(request.user) and bool(request.session.get(SESSION_KEY))
 
 
 def _session_for_member(user, session_id):
@@ -85,14 +107,18 @@ def _session_for_member(user, session_id):
 @login_required
 def session_detail(request, session_id):
     session = _session_for_member(request.user, session_id)
-    return render(request, "bookings/session.html", build_session_page(request.user, session))
+    context = build_session_page(request.user, session, effective_now(request))
+    context["time_travel"] = _time_travelling(request)
+    return render(request, "bookings/session.html", context)
 
 
 @login_required
 def join_session(request, session_id):
     """Redirect to Zoom, but only for paid members and only in the join window."""
     session = _session_for_member(request.user, session_id)
-    if session.is_joinable() and session.cohort.zoom_url:
+    if session.is_joinable(effective_now(request)) and session.cohort.zoom_url:
+        if is_demo_user(request.user):
+            return render(request, "bookings/demo_join.html", {"title": f"Session {session.number}: {session.title}", "back": session.get_absolute_url()})
         return redirect(session.cohort.zoom_url)
     messages.info(request, f"The Zoom link opens at {timezone.localtime(session.join_opens_at):%H:%M}.")
     return redirect(session)
@@ -104,6 +130,8 @@ def join_workshop(request, slug):
     if not WorkshopBooking.objects.active().filter(user=request.user, workshop=workshop).exists():
         raise Http404
     if workshop.is_joinable() and workshop.zoom_url:
+        if is_demo_user(request.user):
+            return render(request, "bookings/demo_join.html", {"title": workshop.title, "back": reverse("bookings:my_programs")})
         return redirect(workshop.zoom_url)
     messages.info(request, f"The Zoom link opens at {timezone.localtime(workshop.join_opens_at):%H:%M}.")
     return redirect("bookings:my_programs")

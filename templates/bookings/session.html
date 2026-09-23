@@ -38,7 +38,7 @@
       </div>
       {% if is_upcoming %}
       <div class="side">
-        <div class="clock" data-countdown="{{ session.starts_at|date:'c' }}" data-opens="{% if not joinable %}{{ session.join_opens_at|date:'c' }}{% endif %}" aria-label="Time until the session starts">
+        <div class="clock" {% if not time_travel %}data-countdown="{{ session.starts_at|date:'c' }}"{% endif %} data-opens="{% if not joinable %}{{ session.join_opens_at|date:'c' }}{% endif %}" aria-label="Time until the session starts">
           {% if countdown.days %}<span class="n" data-unit="days">{{ countdown.days|stringformat:"02d" }}</span><span class="u">days</span>{% endif %}
           <span class="n" data-unit="hours">{{ countdown.hours|stringformat:"02d" }}</span><span class="u">h</span>
           <span class="n" data-unit="minutes">{{ countdown.minutes|stringformat:"02d" }}</span><span class="u">min</span>

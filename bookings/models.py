@@ -13,7 +13,7 @@ class SeatQuerySet(models.QuerySet):
         return self.filter(
             Q(status=SeatBase.Status.ACTIVE)
             | Q(status=SeatBase.Status.PENDING, hold_expires_at__gt=now)
-        )
+        ).exclude(user__is_demo=True)
 
     def active(self):
         return self.filter(status=SeatBase.Status.ACTIVE)

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Joining on Zoom (demo) · Quietwork{% endblock %}
+{% block content %}
+<div class="auth" style="max-width: 560px">
+  <p class="eyebrow">Demo · this is where Zoom opens</p>
+  <h1>{{ title }}</h1>
+  <p>For a real member, this button now takes them straight into Elena's Zoom meeting.</p>
+  <ul class="includes">
+    <li>The Zoom link is never written into the page, so it can't be copied from the source.</li>
+    <li>The server checks that the person paid for this group.</li>
+    <li>It only works from 15 minutes before the start until the session ends.</li>
+  </ul>
+  <a class="btn btn-primary" href="{{ back }}">Back</a>
+</div>
+{% endblock %}

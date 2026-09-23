@@ -34,6 +34,9 @@ class User(AbstractUser):
 
     username = None
     email = models.EmailField("email address", unique=True)
+    is_demo = models.BooleanField(
+        default=False, help_text="Throwaway portfolio-demo account. Never pays, never takes a real seat."
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

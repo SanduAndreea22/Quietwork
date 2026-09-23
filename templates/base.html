@@ -12,6 +12,29 @@
   <script src="{% static 'js/quietwork.js' %}" defer></script>
 </head>
 <body>
+{% if demo_mode %}
+<div class="demo-bar" role="region" aria-label="Portfolio demo">
+  <div class="wrap demo-bar-inner">
+    {% if is_demo_user %}
+      <span><strong>Demo</strong> · You're exploring as Maria. Nothing here is real, and no payment is taken.</span>
+      <div class="demo-actions">
+        <form method="post" action="{% url 'demo:time' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <input type="hidden" name="open" value="{% if demo_join_open %}0{% else %}1{% endif %}">
+          <button class="demo-switch" type="submit" role="switch" aria-checked="{% if demo_join_open %}true{% else %}false{% endif %}">
+            <span class="demo-knob" aria-hidden="true"></span> Show 10 min before the session
+          </button>
+        </form>
+        <form method="post" action="{% url 'demo:leave' %}">{% csrf_token %}<button class="demo-link" type="submit">Exit demo</button></form>
+      </div>
+    {% elif not user.is_authenticated %}
+      <span><strong>Portfolio demo</strong> · A live-program platform built by Andreea Tech. See the member area without booking anything.</span>
+      <form method="post" action="{% url 'demo:enter' %}">{% csrf_token %}<button class="demo-cta" type="submit">Explore as a member →</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 {% block header %}
 <header class="wrap site-header">
   <a class="logo" href="{% url 'catalog:home' %}">Quietwork</a>

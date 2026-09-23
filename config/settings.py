@@ -73,6 +73,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "bookings.context_processors.demo",
             ],
         },
     },
@@ -136,6 +137,11 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Quietwork <hello@quie
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_CURRENCY = "eur"
+
+# Portfolio demo: "Explore as a member" creates a throwaway account with sample data.
+DEMO_MODE = env_bool("DEMO_MODE", DEBUG)
+DEMO_ACCOUNT_HOURS = 6
+DEMO_MAX_ACCOUNTS = 300
 
 # How long a seat is held while the buyer is on Stripe Checkout.
 # Checkout sessions expire after 30 minutes; the hold outlives them slightly.

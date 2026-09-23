@@ -7,9 +7,11 @@ from .models import Cohort, Program, Workshop
 
 
 def _held(prefix, now):
-    return Q(**{f"{prefix}__status": "active"}) | Q(
+    """Seats that count against capacity. Portfolio-demo accounts never do."""
+    held = Q(**{f"{prefix}__status": "active"}) | Q(
         **{f"{prefix}__status": "pending", f"{prefix}__hold_expires_at__gt": now}
     )
+    return held & Q(**{f"{prefix}__user__is_demo": False})
 
 
 def cohorts_with_seats(now=None):
