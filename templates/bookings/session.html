@@ -9,6 +9,7 @@
     <div class="stack gap-8">
       <span class="serif title">{{ program.title }}</span>
       <span class="small muted">{{ cohort.name }} · {{ done_count }} of {{ total }} sessions done</span>
+      <a class="small" href="{% url 'bookings:cohort_calendar' cohort.pk %}">Add all sessions to your calendar</a>
     </div>
     <ol>
       {% for node in nodes %}

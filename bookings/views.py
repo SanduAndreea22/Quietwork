@@ -13,13 +13,17 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from catalog.demo_content import DEMO_PROGRAM_SLUG
 from catalog.models import Cohort, Program, Session, Workshop
+from catalog.selectors import next_open_cohorts
 
 from . import services, stripe_gateway
+from .calendar import calendar_response, session_events, workshop_event
 from .demo import effective_now, is_demo_user
 from .forms import ReserveForm
-from .models import Enrollment, SessionCompletion, StripeEvent, WorkshopBooking
+from .models import Enrollment, SeatBase, SessionCompletion, StripeEvent, WorkshopBooking
 from .progress import build_dashboard, build_session_page
+from .welcome import build_welcome, find_seat
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +93,50 @@ def my_programs(request):
     context["time_travel"] = now != context["now"] or _time_travelling(request)
     context["checkout_success"] = request.GET.get("checkout") == "success"
     return render(request, "bookings/my_programs.html", context)
+
+
+@login_required
+def welcome(request):
+    """After Stripe Checkout. Reads the seat's state; the webhook is what confirms payment."""
+    seat = find_seat(request.user, request.GET.get("session_id", ""))
+    if seat is None and is_demo_user(request.user) and request.GET.get("preview"):
+        # Portfolio demo: an unsaved seat in the next open group, as if Maria had just paid.
+        cohort = next_open_cohorts().filter(program__slug=DEMO_PROGRAM_SLUG).select_related("program").first()
+        if cohort:
+            seat = Enrollment(user=request.user, cohort=cohort, plan=Enrollment.Plan.INSTALMENTS,
+                              status=SeatBase.Status.ACTIVE)
+    if seat is None:
+        return redirect("bookings:my_programs")
+    context = build_welcome(seat)
+    context["demo_preview"] = is_demo_user(request.user)
+    context["now_"] = timezone.now()
+    return render(request, "bookings/welcome.html", context)
+
+
+@login_required
+def cohort_calendar(request, cohort_id):
+    if is_demo_user(request.user):
+        # The demo's after-payment preview shows a group Maria isn't in. Dates and
+        # titles are public on the program page, and the file never holds the Zoom link.
+        cohort = get_object_or_404(Cohort.objects.select_related("program"), pk=cohort_id)
+    else:
+        cohort = get_object_or_404(
+            Enrollment.objects.active().select_related("cohort__program"), user=request.user, cohort_id=cohort_id
+        ).cohort
+    sessions = cohort.sessions.select_related("topic", "cohort__program").order_by("starts_at")
+    return calendar_response(
+        f"Quietwork · {cohort.program.title}", session_events(sessions), f"quietwork-{cohort.program.slug}.ics"
+    )
+
+
+@login_required
+def workshop_calendar(request, slug):
+    booking = get_object_or_404(
+        WorkshopBooking.objects.active().select_related("workshop"), user=request.user, workshop__slug=slug
+    )
+    return calendar_response(
+        f"Quietwork · {booking.workshop.title}", [workshop_event(booking.workshop)], f"quietwork-{slug}.ics"
+    )
 
 
 def _time_travelling(request):

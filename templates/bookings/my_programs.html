@@ -44,7 +44,10 @@
           <span class="serif title">{{ p.program.title }}</span>
           <span class="muted">{{ p.cohort.name }} · {{ p.cohort.starts_at|date:"l" }}s {{ p.cohort.starts_at|date:"H:i T" }} · {{ p.done_count }} of {{ p.total }} sessions done</span>
         </div>
-        <a class="btn btn-primary" href="{{ p.open_url }}">Open program</a>
+        <div class="panel-actions">
+          <a class="btn btn-ghost" href="{% url 'bookings:cohort_calendar' p.cohort.pk %}">Add to calendar</a>
+          <a class="btn btn-primary" href="{{ p.open_url }}">Open program</a>
+        </div>
       </div>
       <ol class="thread-h" data-fill-in style="--done: {{ p.thread_fill }}" aria-label="{{ p.done_count }} of {{ p.total }} sessions done">
         {% for node in p.nodes %}
@@ -87,8 +90,9 @@
       <span>{{ b.workshop.starts_at|date:"D, j F · H:i T" }} · {{ b.workshop.duration_minutes }} min on Zoom</span>
       <div class="panel-row">
         <strong style="color: var(--moss)">{% if b.workshop.starts_at|date:"Ymd" == now|date:"Ymd" %}Today{% else %}In {{ b.workshop.starts_at|timeuntil:now }}{% endif %}</strong>
-        <span class="tiny muted">The link opens {{ join_opens_minutes }} min before start</span>
+        <a class="small" href="{% url 'bookings:workshop_calendar' b.workshop.slug %}">Add to calendar</a>
       </div>
+      <span class="tiny muted">The link opens {{ join_opens_minutes }} min before start</span>
     </article>
     {% endfor %}
     {% if suggestion %}

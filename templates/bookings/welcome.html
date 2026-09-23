@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load quietwork %}
+{% block title %}Your seat is saved · Quietwork{% endblock %}
+{% block extra_head %}{% if still_pending and seat.hold_expires_at > now_ %}<meta http-equiv="refresh" content="3">{% endif %}{% endblock %}
+{% block content %}
+<div class="wrap welcome">
+  {% if demo_preview %}<p class="message">Demo preview: this is the screen a member sees right after paying.</p>{% endif %}
+
+  {% if confirmed %}
+  <section class="welcome-hero">
+    <p class="eyebrow">Your seat is saved</p>
+    {% if is_program %}
+      <h1>Welcome to {{ program.title }}, <em>{{ user.display_name }}.</em></h1>
+      <p class="lead">{{ cohort.name }} · starts {{ cohort.starts_at|date:"l, j F" }} at {{ cohort.starts_at|date:"H:i T" }}. Eight evenings with a small group, and the thread starts here.</p>
+    {% else %}
+      <h1>See you at the workshop, <em>{{ user.display_name }}.</em></h1>
+      <p class="lead">{{ workshop.title }} · {{ workshop.starts_at|date:"l, j F" }} at {{ workshop.starts_at|date:"H:i T" }} · {{ workshop.duration_minutes }} min on Zoom.</p>
+    {% endif %}
+  </section>
+
+  <section class="seats-card" aria-label="Seats in your group">
+    <div class="panel-row">
+      <span class="serif seats-title">You're {{ position }} of {{ capacity }}.</span>
+      <span class="small muted">{% if is_program %}Small group on purpose{% else %}A small room, on purpose{% endif %}</span>
+    </div>
+    <ol class="seat-dots" style="--count: {{ capacity }}">
+      {% for dot in dots %}
+      <li class="{% if dot.mine %}mine{% elif dot.taken %}taken{% endif %}" style="--i: {{ forloop.counter0 }}">
+        <span class="visually-hidden">{% if dot.mine %}Your seat{% elif dot.taken %}Taken{% else %}Free{% endif %}</span>
+        {% if dot.mine %}<span class="you" aria-hidden="true">You</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <div class="split">
+    {% if is_program and first_session %}
+    <section class="panel">
+      <span class="eyebrow">First session · {{ first_session.starts_at|date:"D j F · H:i T" }}</span>
+      <span class="serif title">{{ first_session.title }}</span>
+      {% if first_session.topic.summary %}<p class="muted">{{ first_session.topic.summary|truncatewords:40 }}</p>{% endif %}
+      <a href="{{ first_session.get_absolute_url }}">Open the session page →</a>
+    </section>
+    {% elif not is_program %}
+    <section class="panel">
+      <span class="eyebrow">What to expect</span>
+      <p>{{ workshop.description }}</p>
+    </section>
+    {% endif %}
+    <section class="exercise">
+      <span class="serif">What happens next</span>
+      <p>Your Zoom link opens in your account 15 minutes before {% if is_program %}each session{% else %}the start{% endif %}. There are no reminder emails, so add the {% if is_program %}sessions{% else %}evening{% endif %} to your calendar and it will remind you.</p>
+    </section>
+  </div>
+
+  <div class="welcome-actions">
+    {% if is_program %}
+      <a class="btn btn-primary" href="{% url 'bookings:cohort_calendar' cohort.pk %}">Add all {{ sessions|length }} sessions to your calendar</a>
+    {% else %}
+      <a class="btn btn-primary" href="{% url 'bookings:workshop_calendar' workshop.slug %}">Add it to your calendar</a>
+    {% endif %}
+    <a class="btn btn-ghost" href="{% url 'bookings:my_programs' %}">Go to my programs</a>
+  </div>
+  <p class="small muted">
+    {% if is_program and seat.plan == "instalments" %}
+      Payment: first of {{ program.instalment_count }} monthly payments of {{ program.instalment_cents|euros }}. The next one is charged in a month, and nothing after the last.
+    {% elif is_program %}
+      Payment: {{ program.price_full_cents|euros }}, paid in full.
+    {% else %}
+      Payment: {{ workshop.price_cents|euros }}.
+    {% endif %}
+    {% if not demo_preview %}A receipt from Stripe is on its way to {{ user.email }}.{% endif %}
+  </p>
+
+  {% elif still_pending %}
+  <section class="welcome-hero">
+    <p class="eyebrow">Almost there</p>
+    <h1>Confirming your payment…</h1>
+    {% if seat.hold_expires_at > now_ %}
+      <p class="lead">This usually takes a few seconds. The page will update on its own.</p>
+    {% else %}
+      <p class="lead">We haven't received the confirmation from Stripe yet. If you were charged, your seat will appear in <a href="{% url 'bookings:my_programs' %}">My programs</a> shortly.</p>
+    {% endif %}
+  </section>
+
+  {% else %}
+  <section class="welcome-hero">
+    <p class="eyebrow">About your payment</p>
+    <h1>You already have this seat.</h1>
+    <p class="lead">It looks like this was a second payment for the same {% if is_program %}group{% else %}workshop{% endif %}, so we didn't book it twice. The extra payment will be refunded.</p>
+    <a class="btn btn-primary" href="{% url 'bookings:my_programs' %}">Go to my programs</a>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -11,6 +11,7 @@
   <script>document.documentElement.classList.add("js")</script>
   <link rel="stylesheet" href="{% static 'css/quietwork.css' %}">
   <script src="{% static 'js/quietwork.js' %}" defer></script>
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
 {% if demo_mode %}
@@ -27,6 +28,7 @@
             <span class="demo-knob" aria-hidden="true"></span> Show 10 min before the session
           </button>
         </form>
+        <a class="demo-link" href="{% url 'bookings:welcome' %}?preview=1">After-payment screen</a>
         <form method="post" action="{% url 'demo:leave' %}">{% csrf_token %}<button class="demo-link" type="submit">Exit demo</button></form>
       </div>
     {% elif not user.is_authenticated %}

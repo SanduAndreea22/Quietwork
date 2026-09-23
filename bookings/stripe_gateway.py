@@ -38,7 +38,7 @@ def create_enrollment_checkout(enrollment):
         "client_reference_id": str(enrollment.user.pk),
         "metadata": metadata,
         "expires_at": _expires_at(),
-        "success_url": _url("bookings:my_programs") + "?checkout=success",
+        "success_url": _url("bookings:welcome") + "?session_id={CHECKOUT_SESSION_ID}",
         "cancel_url": _url("catalog:program", program.slug) + "?checkout=cancelled",
     }
     if enrollment.plan == Enrollment.Plan.INSTALMENTS:
@@ -90,7 +90,7 @@ def create_workshop_checkout(booking):
                 "product_data": {"name": f"{workshop.title} · {workshop.starts_at:%d %B %Y}"},
             },
         }],
-        success_url=_url("bookings:my_programs") + "?checkout=success",
+        success_url=_url("bookings:welcome") + "?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=_url("catalog:home") + "?checkout=cancelled#workshop",
     )
 
