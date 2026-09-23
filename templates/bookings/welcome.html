@@ -11,10 +11,10 @@
     <p class="eyebrow">Your seat is saved</p>
     {% if is_program %}
       <h1>Welcome to {{ program.title }}, <em>{{ user.display_name }}.</em></h1>
-      <p class="lead">{{ cohort.name }} · starts {{ cohort.starts_at|date:"l, j F" }} at {{ cohort.starts_at|date:"H:i T" }}. Eight evenings with a small group, and the thread starts here.</p>
+      <p class="lead">{{ cohort.name }} · starts {{ cohort.starts_at|date:"l, j F" }} at {{ cohort.starts_at|date:"H:i T" }}{% local_time cohort.starts_at %}. Eight evenings with a small group, and the thread starts here.</p>
     {% else %}
       <h1>See you at the workshop, <em>{{ user.display_name }}.</em></h1>
-      <p class="lead">{{ workshop.title }} · {{ workshop.starts_at|date:"l, j F" }} at {{ workshop.starts_at|date:"H:i T" }} · {{ workshop.duration_minutes }} min on Zoom.</p>
+      <p class="lead">{{ workshop.title }} · {{ workshop.starts_at|date:"l, j F" }} at {{ workshop.starts_at|date:"H:i T" }}{% local_time workshop.starts_at %} · {{ workshop.duration_minutes }} min on Zoom.</p>
     {% endif %}
   </section>
 
@@ -36,7 +36,7 @@
   <div class="split">
     {% if is_program and first_session %}
     <section class="panel">
-      <span class="eyebrow">First session · {{ first_session.starts_at|date:"D j F · H:i T" }}</span>
+      <span class="eyebrow">First session · {{ first_session.starts_at|date:"D j F · H:i T" }}{% local_time first_session.starts_at %}</span>
       <span class="serif title">{{ first_session.title }}</span>
       {% if first_session.topic.summary %}<p class="muted">{{ first_session.topic.summary|truncatewords:40 }}</p>{% endif %}
       <a href="{{ first_session.get_absolute_url }}">Open the session page →</a>

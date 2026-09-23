@@ -17,7 +17,7 @@
     <div class="stack gap-12">
       <p class="eyebrow">Next up · {% if next_up.starts_at|date:"Ymd" == now|date:"Ymd" %}today{% else %}{{ next_up.starts_at|date:"l, j F" }}{% endif %}</p>
       <h2 id="next-up-title">{{ next_up.title }}</h2>
-      <p class="sub">{{ next_up.subtitle }} · {{ next_up.starts_at|date:"D j F · H:i T" }} · {{ next_up.duration_minutes }} min on Zoom</p>
+      <p class="sub">{{ next_up.subtitle }} · {{ next_up.starts_at|date:"D j F · H:i T" }}{% local_time next_up.starts_at %} · {{ next_up.duration_minutes }} min on Zoom</p>
       {% if next_up.page_url %}<p><a class="small" style="color: var(--sage)" href="{{ next_up.page_url }}">Open the session page →</a></p>{% endif %}
     </div>
     <div class="panel-row" style="gap: 36px">
@@ -42,7 +42,7 @@
       <div class="panel-head">
         <div class="stack gap-8">
           <span class="serif title">{{ p.program.title }}</span>
-          <span class="muted">{{ p.cohort.name }} · {{ p.cohort.starts_at|date:"l" }}s {{ p.cohort.starts_at|date:"H:i T" }} · {{ p.done_count }} of {{ p.total }} sessions done</span>
+          <span class="muted">{{ p.cohort.name }} · {{ p.cohort.starts_at|date:"l" }}s {{ p.cohort.starts_at|date:"H:i T" }}{% local_time p.cohort.starts_at %} · {{ p.done_count }} of {{ p.total }} sessions done</span>
         </div>
         <div class="panel-actions">
           <a class="btn btn-ghost" href="{% url 'bookings:cohort_calendar' p.cohort.pk %}">Add to calendar</a>
@@ -87,7 +87,7 @@
     <article class="tile sage">
       <span class="eyebrow">Your live workshop</span>
       <span class="serif">{{ b.workshop.title }}</span>
-      <span>{{ b.workshop.starts_at|date:"D, j F · H:i T" }} · {{ b.workshop.duration_minutes }} min on Zoom</span>
+      <span>{{ b.workshop.starts_at|date:"D, j F · H:i T" }}{% local_time b.workshop.starts_at %} · {{ b.workshop.duration_minutes }} min on Zoom</span>
       <div class="panel-row">
         <strong style="color: var(--moss)">{% if b.workshop.starts_at|date:"Ymd" == now|date:"Ymd" %}Today{% else %}In {{ b.workshop.starts_at|timeuntil:now }}{% endif %}</strong>
         <a class="small" href="{% url 'bookings:workshop_calendar' b.workshop.slug %}">Add to calendar</a>

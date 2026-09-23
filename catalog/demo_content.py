@@ -11,7 +11,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 
-from catalog.models import Cohort, Program, SessionTopic, Workshop
+from catalog.models import Cohort, FAQItem, Program, SessionTopic, Workshop
 
 PROGRAMS = [
     {
@@ -78,6 +78,20 @@ def _next_weekday(from_date, weekday, min_days_ahead):
 def _at_19(day):
     return timezone.make_aware(datetime.combine(day, time(19, 0)))
 
+
+# Starting FAQ, shown on every program. Elena edits these in the admin.
+FAQ = [
+    ("What if I miss a session?",
+     "Every session is recorded. The recording appears in your account the next day, with Elena's notes and the week's exercise, so you can catch up before the next one."),
+    ("Do I need to have my camera on?",
+     "It's welcome, not required. Plenty of people listen for the first week or two and join in when they're ready."),
+    ("How big is the group?",
+     "Up to twelve people, the same group for all eight weeks. Small on purpose, so there is time for everyone."),
+    ("What do I need?",
+     "A laptop or phone with Zoom, a quiet corner for 75 minutes, and something to write in."),
+    ("Is this therapy?",
+     "No. These are practice groups, not therapy. If you are going through something heavy, please talk to a professional first."),
+]
 
 DEMO_PROGRAM_SLUG = "boundaries-without-guilt"
 FINISHED_PROGRAM_SLUG = "small-habits-real-change"
@@ -158,6 +172,11 @@ def ensure_demo_content(refresh=False):
 
         if program.slug == FINISHED_PROGRAM_SLUG and not finished_cohorts(now).filter(program=program).exists():
             _create_cohort(program, _next_weekday(today - timedelta(weeks=14), data["weekday"], 0), is_open=False)
+
+    if not FAQItem.objects.exists():
+        FAQItem.objects.bulk_create(
+            [FAQItem(question=q, answer=a, order=i) for i, (q, a) in enumerate(FAQ)]
+        )
 
     if not Workshop.objects.filter(starts_at__gt=now, is_published=True).exists():
         day = _next_weekday(today, 3, 8)

@@ -49,3 +49,33 @@ class ReserveInputTests(TestCase):
         self.client.force_login(make_user())
         response = self.client.post(reverse("catalog:reserve_program", args=[program.slug]), {"cohort": "abc", "plan": "full"})
         self.assertEqual(response.status_code, 302)
+
+
+class ProgramPageTrustTests(TestCase):
+    def setUp(self):
+        from bookings.tests.factories import make_cohort
+        self.cohort = make_cohort()
+        self.program = self.cohort.program
+
+    def test_times_carry_a_local_time_placeholder(self):
+        response = self.client.get(reverse("catalog:program", args=[self.program.slug]))
+        self.assertContains(response, f'data-local-time="{self.cohort.starts_at.isoformat()}" hidden')
+
+    def test_faq_shows_general_and_own_items_only(self):
+        from catalog.models import FAQItem
+        other = make_program(slug="other")
+        FAQItem.objects.create(question="General question?", answer="Yes.")
+        FAQItem.objects.create(program=self.program, question="Own question?", answer="Yes.")
+        FAQItem.objects.create(program=other, question="Other program question?", answer="No.")
+        FAQItem.objects.create(question="Hidden question?", answer="No.", is_published=False)
+        response = self.client.get(reverse("catalog:program", args=[self.program.slug]))
+        self.assertContains(response, "General question?")
+        self.assertContains(response, "Own question?")
+        self.assertNotContains(response, "Other program question?")
+        self.assertNotContains(response, "Hidden question?")
+
+    def test_payment_answer_follows_the_program_prices(self):
+        self.program.instalment_cents = 15000
+        self.program.save()
+        response = self.client.get(reverse("catalog:program", args=[self.program.slug]))
+        self.assertContains(response, "You pay €150 when you book")

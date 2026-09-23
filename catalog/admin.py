@@ -1,6 +1,6 @@
 from django.contrib import admin, messages
 
-from .models import Cohort, Program, Session, SessionTopic, Workshop
+from .models import Cohort, FAQItem, Program, Session, SessionTopic, Workshop
 from .selectors import cohorts_with_seats, workshops_with_seats
 from .templatetags.quietwork import seats_left
 
@@ -11,12 +11,25 @@ class SessionTopicInline(admin.TabularInline):
     fields = ("number", "title", "summary", "exercise")
 
 
+class FAQInline(admin.TabularInline):
+    model = FAQItem
+    extra = 0
+    fields = ("question", "answer", "order", "is_published")
+
+
+@admin.register(FAQItem)
+class FAQItemAdmin(admin.ModelAdmin):
+    list_display = ("question", "program", "order", "is_published")
+    list_editable = ("order", "is_published")
+    list_filter = ("program", "is_published")
+
+
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     list_display = ("title", "is_published", "session_minutes", "price_full_cents", "instalment_cents", "order")
     list_editable = ("is_published", "order")
     prepopulated_fields = {"slug": ("title",)}
-    inlines = [SessionTopicInline]
+    inlines = [SessionTopicInline, FAQInline]
 
 
 class SessionInline(admin.TabularInline):

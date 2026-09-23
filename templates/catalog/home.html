@@ -44,7 +44,7 @@
           <p class="eyebrow">{% if cohort %}Starts {{ cohort.starts_at|date:"D, j F" }}{% else %}Next group coming soon{% endif %}</p>
           <h3><a href="{{ program.get_absolute_url }}">{{ program.title }}</a></h3>
           <p>{{ program.tagline }}</p>
-          {% if cohort %}<p class="small muted">{{ cohort.starts_at|date:"l" }}s · {{ cohort.starts_at|date:"H:i T" }} · {{ program.session_minutes }} min</p>{% endif %}
+          {% if cohort %}<p class="small muted">{{ cohort.starts_at|date:"l" }}s · {{ cohort.starts_at|date:"H:i T" }}{% local_time cohort.starts_at %} · {{ program.session_minutes }} min</p>{% endif %}
           <div class="card-foot">
             <div class="stack">
               <span class="price">{{ program.price_full_cents|euros }}</span>
@@ -76,7 +76,7 @@
     <div class="workshop-box">
       <dl class="facts">
         <div><dt class="eyebrow">Date</dt><dd>{{ workshop.starts_at|date:"D, j F" }}</dd></div>
-        <div><dt class="eyebrow">Time</dt><dd>{{ workshop.starts_at|date:"H:i T" }} · {{ workshop.duration_minutes }} min</dd></div>
+        <div><dt class="eyebrow">Time</dt><dd>{{ workshop.starts_at|date:"H:i T" }}{% local_time workshop.starts_at %} · {{ workshop.duration_minutes }} min</dd></div>
         <div><dt class="eyebrow">Where</dt><dd>Online, on Zoom</dd></div>
         <div><dt class="eyebrow">Price</dt><dd>{{ workshop.price_cents|euros }}</dd></div>
       </dl>

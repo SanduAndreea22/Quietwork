@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load quietwork %}
 {% block title %}Session {{ session.number }}: {{ session.title }} · Quietwork{% endblock %}
 {% block header %}{% endblock %}
 {% block footer %}{% endblock %}
@@ -34,7 +35,7 @@
 
     <section class="banner{% if not is_upcoming %} past{% endif %}">
       <div class="stack gap-12">
-        <span class="eyebrow">Session {{ session.number }} · {% if is_today %}Today · {% endif %}{{ session.starts_at|date:"D j F · H:i T" }}</span>
+        <span class="eyebrow">Session {{ session.number }} · {% if is_today %}Today · {% endif %}{{ session.starts_at|date:"D j F · H:i T" }}{% local_time session.starts_at %}</span>
         <h1>{{ session.title }}</h1>
       </div>
       {% if is_upcoming %}

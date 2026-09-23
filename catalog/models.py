@@ -223,3 +223,23 @@ class Workshop(models.Model):
 
     def is_bookable(self):
         return self.is_published and self.starts_at > timezone.now()
+
+
+class FAQItem(models.Model):
+    """A question on the program pages. No program = shown on every program."""
+
+    program = models.ForeignKey(
+        Program, null=True, blank=True, on_delete=models.CASCADE, related_name="faq_items",
+        help_text="Leave empty to show it on every program page.",
+    )
+    question = models.CharField(max_length=200)
+    answer = models.TextField()
+    order = models.PositiveSmallIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "pk"]
+        verbose_name = "FAQ item"
+
+    def __str__(self):
+        return self.question

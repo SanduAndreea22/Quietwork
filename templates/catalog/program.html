@@ -11,7 +11,7 @@
       <p class="lead">{{ program.description }}</p>
       <div class="chips">
         <span>{{ topic_count }} weekly sessions on Zoom</span>
-        {% if cohort %}<span>{{ cohort.starts_at|date:"l" }}s · {{ cohort.starts_at|date:"H:i T" }} · {{ program.session_minutes }} min</span>
+        {% if cohort %}<span>{{ cohort.starts_at|date:"l" }}s · {{ cohort.starts_at|date:"H:i T" }}{% local_time cohort.starts_at %} · {{ program.session_minutes }} min</span>
         <span>Up to {{ cohort.capacity }} people</span>{% endif %}
       </div>
     </div>
@@ -46,6 +46,28 @@
       <p class="small muted">Can't make one evening? Each session is recorded, and the recording appears in your account the next day.</p>
     </section>
     {% endif %}
+
+    <section class="stack gap-20" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions people ask</h2>
+      <div class="faq">
+        {% if program.instalment_count > 1 %}
+        <details>
+          <summary>How do the monthly payments work?</summary>
+          <p>You pay {{ program.instalment_cents|euros }} when you book, then {{ program.instalment_cents|euros }} once a month, {{ program.instalment_count }} payments in all. It stops on its own after the last one. Paying in full at once costs {{ program.price_full_cents|euros }}{% if program.full_payment_saving_cents %}, {{ program.full_payment_saving_cents|euros }} less{% endif %}.</p>
+        </details>
+        {% endif %}
+        <details>
+          <summary>What time is it for me?</summary>
+          <p>Sessions are on Central European Time: {% if cohort %}{{ cohort.starts_at|date:"H:i T" }}{% local_time cohort.starts_at %}{% else %}evenings, CET{% endif %}. Your account and your calendar always show the time where you are.</p>
+        </details>
+        {% for item in faq_items %}
+        <details>
+          <summary>{{ item.question }}</summary>
+          <p>{{ item.answer|linebreaksbr }}</p>
+        </details>
+        {% endfor %}
+      </div>
+    </section>
   </div>
 
   <aside class="booking" aria-label="Book a seat">

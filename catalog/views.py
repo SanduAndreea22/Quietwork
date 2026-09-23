@@ -3,7 +3,9 @@ from django.shortcuts import get_object_or_404, render
 from bookings.models import Enrollment
 
 from . import selectors
-from .models import Program
+from django.db.models import Q
+
+from .models import FAQItem, Program
 
 
 def home(request):
@@ -32,6 +34,7 @@ def program_detail(request, slug):
             "sessions": sorted(cohort.session_list, key=lambda s: s.starts_at) if cohort else [],
             "already_in": already_in,
             "topic_count": program.topics.count(),
+            "faq_items": FAQItem.objects.filter(Q(program=program) | Q(program__isnull=True), is_published=True),
             "cancelled": request.GET.get("checkout") == "cancelled",
         },
     )

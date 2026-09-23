@@ -72,3 +72,29 @@
     revealOnView(document.querySelectorAll(".bar, [data-fill-in]"));
   });
 })();
+
+// "19:00 CET · 20:00 for you": show the visitor's own time when it differs
+// from Elena's time zone. Without JavaScript nothing is shown.
+(function () {
+  var ELENA_TZ = "Europe/Berlin";
+  var mine;
+  try { mine = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return; }
+  if (!mine || mine === ELENA_TZ) return;
+  function parts(date, tz) {
+    var f = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", weekday: "short", hour12: false });
+    var out = {};
+    f.formatToParts(date).forEach(function (p) { out[p.type] = p.value; });
+    return out;
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-local-time]").forEach(function (el) {
+      var date = new Date(el.dataset.localTime);
+      var here = parts(date, mine), there = parts(date, ELENA_TZ);
+      var hereTime = here.hour + ":" + here.minute, thereTime = there.hour + ":" + there.minute;
+      if (hereTime === thereTime) return;
+      el.textContent = " · " + (here.weekday !== there.weekday ? here.weekday + " " : "") + hereTime + " for you";
+      el.title = "Your time zone: " + mine;
+      el.hidden = false;
+    });
+  });
+})();
