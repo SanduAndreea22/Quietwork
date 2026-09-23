@@ -112,12 +112,15 @@ class Cohort(models.Model):
     def generate_sessions(self):
         """Create one weekly session per topic, starting at starts_at. Idempotent."""
         created = 0
+        # Step in local wall-clock time, so a 19:00 group stays at 19:00 after
+        # the clocks change (adding weeks to a UTC datetime would shift it).
+        first = timezone.localtime(self.starts_at).replace(tzinfo=None)
         for topic in self.program.topics.all():
             _, was_created = Session.objects.get_or_create(
                 cohort=self,
                 topic=topic,
                 defaults={
-                    "starts_at": self.starts_at + timedelta(weeks=topic.number - 1),
+                    "starts_at": timezone.make_aware(first + timedelta(weeks=topic.number - 1)),
                     "duration_minutes": self.program.session_minutes,
                 },
             )

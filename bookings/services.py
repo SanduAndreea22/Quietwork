@@ -112,8 +112,11 @@ def _activate(seat, duplicate_filter):
     return True
 
 
-def complete_checkout(checkout):
-    """Handle a paid Checkout Session (payment or subscription mode)."""
+def complete_checkout(checkout, cancel_subscription_now=None):
+    """Handle a paid Checkout Session (payment or subscription mode).
+
+    cancel_subscription_now(sub_id) stops a duplicate subscription straight away.
+    """
     meta = checkout.get("metadata") or {}
     kind, seat_id = meta.get("kind"), meta.get("seat_id")
     customer = checkout.get("customer") or ""
@@ -123,11 +126,13 @@ def complete_checkout(checkout):
         if seat is None:
             logger.error("Checkout %s refers to missing enrollment %s", checkout.get("id"), seat_id)
             return
-        _activate(seat, Enrollment.objects.filter(user=seat.user, cohort=seat.cohort))
+        activated = _activate(seat, Enrollment.objects.filter(user=seat.user, cohort=seat.cohort))
         seat.stripe_checkout_session_id = checkout.get("id") or seat.stripe_checkout_session_id
         seat.stripe_customer_id = customer or seat.stripe_customer_id
         if checkout.get("mode") == "subscription":
             seat.stripe_subscription_id = checkout.get("subscription") or seat.stripe_subscription_id
+            if not activated and seat.stripe_subscription_id and cancel_subscription_now:
+                cancel_subscription_now(seat.stripe_subscription_id)
         elif not seat.amount_paid_cents:
             seat.amount_paid_cents = checkout.get("amount_total") or 0
         seat.save()
@@ -176,24 +181,28 @@ def _enrollment_for_invoice(invoice):
     return seat, sub_id
 
 
-def record_instalment_paid(invoice, cancel_subscription):
+def record_instalment_paid(invoice, cancel_subscription, cancel_subscription_now=None):
     """Count a paid instalment; stop the subscription once all are paid.
 
-    cancel_subscription(sub_id) is called inside the transaction, so if Stripe
-    refuses, the webhook fails and Stripe retries the whole event.
+    The cancel callbacks run inside the transaction, so if Stripe refuses,
+    the webhook fails and Stripe retries the whole event.
     """
     seat, sub_id = _enrollment_for_invoice(invoice)
     if seat is None:
         logger.info("invoice.paid for unknown subscription %s", sub_id)
         return
-    _activate(seat, Enrollment.objects.filter(user=seat.user, cohort=seat.cohort))
+    activated = _activate(seat, Enrollment.objects.filter(user=seat.user, cohort=seat.cohort))
     seat.stripe_subscription_id = sub_id or seat.stripe_subscription_id
     seat.instalments_paid += 1
     seat.amount_paid_cents += invoice.get("amount_paid") or 0
     seat.payment_problem = False
     seat.save()
 
-    if seat.instalments_paid >= seat.cohort.program.instalment_count and seat.stripe_subscription_id:
+    if not seat.stripe_subscription_id:
+        return
+    if not activated and cancel_subscription_now:
+        cancel_subscription_now(seat.stripe_subscription_id)
+    elif seat.instalments_paid >= seat.cohort.program.instalment_count:
         cancel_subscription(seat.stripe_subscription_id)
 
 

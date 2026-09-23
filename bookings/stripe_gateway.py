@@ -109,6 +109,17 @@ def stop_subscription_after_current_period(subscription_id):
     _client().Subscription.modify(subscription_id, cancel_at_period_end=True)
 
 
+def cancel_subscription_now(subscription_id):
+    """Stop a duplicate subscription at once. The payment already taken is refunded by hand."""
+    s = _client()
+    try:
+        s.Subscription.cancel(subscription_id)
+    except stripe.InvalidRequestError:
+        # Cancelling twice is an error in Stripe; a retried webhook must not fail on it.
+        if s.Subscription.retrieve(subscription_id).status != "canceled":
+            raise
+
+
 def construct_event(payload, signature):
     if not settings.STRIPE_WEBHOOK_SECRET:
         raise PaymentsNotConfigured("STRIPE_WEBHOOK_SECRET is not set.")

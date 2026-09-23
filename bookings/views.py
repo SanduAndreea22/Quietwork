@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from catalog.models import Cohort, Program, Session, Workshop
 
 from . import services, stripe_gateway
+from .forms import ReserveForm
 from .models import Enrollment, SessionCompletion, StripeEvent, WorkshopBooking
 from .progress import build_dashboard, build_session_page
 
@@ -40,9 +41,13 @@ def _start_checkout(request, seat, released, create_checkout, back_url):
 @require_POST
 def reserve_program(request, slug):
     program = get_object_or_404(Program, slug=slug, is_published=True)
-    cohort = get_object_or_404(Cohort, pk=request.POST.get("cohort") or 0, program=program)
+    form = ReserveForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Please choose how you'd like to pay.")
+        return redirect(program)
+    cohort = get_object_or_404(Cohort, pk=form.cleaned_data["cohort"], program=program)
     try:
-        seat, released = services.reserve_cohort_seat(request.user, cohort.pk, request.POST.get("plan"))
+        seat, released = services.reserve_cohort_seat(request.user, cohort.pk, form.cleaned_data["plan"])
     except services.BookingError as exc:
         messages.error(request, str(exc))
         return redirect(program)
@@ -151,10 +156,12 @@ def stripe_webhook(request):
 def _dispatch(event_type, obj):
     if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         if obj.get("payment_status") in ("paid", "no_payment_required"):
-            services.complete_checkout(obj)
+            services.complete_checkout(obj, stripe_gateway.cancel_subscription_now)
     elif event_type in ("checkout.session.expired", "checkout.session.async_payment_failed"):
         services.expire_checkout(obj)
     elif event_type == "invoice.paid":
-        services.record_instalment_paid(obj, stripe_gateway.stop_subscription_after_current_period)
+        services.record_instalment_paid(
+            obj, stripe_gateway.stop_subscription_after_current_period, stripe_gateway.cancel_subscription_now
+        )
     elif event_type == "invoice.payment_failed":
         services.record_instalment_failed(obj)

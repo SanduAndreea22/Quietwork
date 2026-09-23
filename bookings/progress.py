@@ -70,6 +70,7 @@ class ProgramProgress:
 class NextUp:
     kind: str  # "session" | "workshop"
     starts_at: datetime
+    opens_at: datetime
     title: str
     subtitle: str
     duration_minutes: int
@@ -143,6 +144,7 @@ def build_dashboard(user, now=None):
             NextUp(
                 kind="session",
                 starts_at=s.starts_at,
+                opens_at=s.join_opens_at,
                 title=f"Session {s.number}: {s.title}",
                 subtitle=p.program.title,
                 duration_minutes=s.duration_minutes,
@@ -157,6 +159,7 @@ def build_dashboard(user, now=None):
             NextUp(
                 kind="workshop",
                 starts_at=w.starts_at,
+                opens_at=w.join_opens_at,
                 title=w.title,
                 subtitle="Live workshop",
                 duration_minutes=w.duration_minutes,

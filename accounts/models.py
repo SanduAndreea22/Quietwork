@@ -14,6 +14,10 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def get_by_natural_key(self, email):
+        # Emails are stored lower-case; let people sign in however they type it.
+        return self.get(email__iexact=email)
+
     def create_user(self, email, password=None, **extra):
         extra.setdefault("is_staff", False)
         extra.setdefault("is_superuser", False)

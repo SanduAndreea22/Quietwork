@@ -127,3 +127,21 @@ class WebhookTests(TestCase):
         self.post(self.event("evt_w", "checkout.session.completed", checkout))
         seat.refresh_from_db()
         self.assertEqual(seat.status, WorkshopBooking.Status.ACTIVE)
+
+
+@override_settings(STRIPE_WEBHOOK_SECRET="whsec_test")
+class DuplicateSubscriptionTests(WebhookTests):
+    def test_duplicate_instalment_subscription_is_cancelled_at_once(self):
+        first, _ = reserve_cohort_seat(self.user, self.cohort.pk, "full")
+        Enrollment.objects.filter(pk=first.pk).update(status=SeatBase.Status.ACTIVE)
+        dup = Enrollment.objects.create(
+            user=self.user, cohort=self.cohort, plan="instalments", status=SeatBase.Status.EXPIRED
+        )
+        meta = {"kind": "enrollment", "seat_id": str(dup.pk)}
+        checkout = {"id": "cs_d", "mode": "subscription", "payment_status": "paid",
+                    "subscription": "sub_dup", "metadata": meta}
+        with mock.patch("bookings.stripe_gateway.cancel_subscription_now") as cancel_now:
+            self.post(self.event("evt_d", "checkout.session.completed", checkout))
+        cancel_now.assert_called_once_with("sub_dup")
+        dup.refresh_from_db()
+        self.assertEqual(dup.status, SeatBase.Status.CANCELLED)

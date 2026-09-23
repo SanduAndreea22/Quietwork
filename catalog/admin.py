@@ -1,6 +1,8 @@
 from django.contrib import admin, messages
 
 from .models import Cohort, Program, Session, SessionTopic, Workshop
+from .selectors import cohorts_with_seats, workshops_with_seats
+from .templatetags.quietwork import seats_left
 
 
 class SessionTopicInline(admin.TabularInline):
@@ -40,9 +42,12 @@ class CohortAdmin(admin.ModelAdmin):
     inlines = [SessionInline]
     actions = ["generate_sessions"]
 
+    def get_queryset(self, request):
+        return cohorts_with_seats().select_related("program")
+
     @admin.display(description="Seats left")
     def seats_left_display(self, obj):
-        return obj.seats_left()
+        return seats_left(obj)
 
     @admin.action(description="Create the weekly sessions from the program's topics")
     def generate_sessions(self, request, queryset):
@@ -67,6 +72,9 @@ class WorkshopAdmin(admin.ModelAdmin):
     list_display = ("title", "starts_at", "capacity", "seats_left_display", "price_cents", "is_published")
     prepopulated_fields = {"slug": ("title",)}
 
+    def get_queryset(self, request):
+        return workshops_with_seats()
+
     @admin.display(description="Seats left")
     def seats_left_display(self, obj):
-        return obj.seats_left()
+        return seats_left(obj)

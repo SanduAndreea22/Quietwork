@@ -21,7 +21,7 @@
       {% if next_up.page_url %}<p><a class="small" style="color: var(--sage)" href="{{ next_up.page_url }}">Open the session page →</a></p>{% endif %}
     </div>
     <div class="panel-row" style="gap: 36px">
-      <div class="count" data-countdown="{{ next_up.starts_at|date:'c' }}" data-opens="{% if not next_up.joinable %}{{ next_up.starts_at|date:'c' }}{% endif %}" aria-label="Time until it starts">
+      <div class="count" data-countdown="{{ next_up.starts_at|date:'c' }}" data-opens="{% if not next_up.joinable %}{{ next_up.opens_at|date:'c' }}{% endif %}" aria-label="Time until it starts">
         {% if next_up_countdown.days %}<div><span class="n" data-unit="days">{{ next_up_countdown.days|stringformat:"02d" }}</span><span class="u">days</span></div>{% endif %}
         <div><span class="n" data-unit="hours">{{ next_up_countdown.hours|stringformat:"02d" }}</span><span class="u">hours</span></div>
         <div><span class="n" data-unit="minutes">{{ next_up_countdown.minutes|stringformat:"02d" }}</span><span class="u">min</span></div>
