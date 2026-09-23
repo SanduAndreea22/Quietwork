@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Create an account · Quietwork{% endblock %}
+{% block content %}
+<form class="auth" method="post" novalidate>
+  {% csrf_token %}
+  <h1>Create an account</h1>
+  <p class="muted">Your account holds your seats, Zoom links, recordings and notes.</p>
+  {% for field in form %}{% include "accounts/_field.html" %}{% endfor %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn btn-primary btn-block" type="submit">Create account</button>
+  <p class="small muted">Already have one? <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Sign in</a></p>
+</form>
+{% endblock %}

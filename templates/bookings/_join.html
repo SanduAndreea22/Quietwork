@@ -1,0 +1,6 @@
+{% comment %}Join button. The link itself is checked on the server; this only shows its state.{% endcomment %}
+{% if joinable %}
+  <a class="btn btn-on-dark" href="{{ url }}" target="_blank" rel="noopener">Join on Zoom</a>
+{% else %}
+  <span class="btn btn-outline-light" aria-disabled="true">Join on Zoom{% if opens_label %} · opens {{ opens_label }}{% endif %}</span>
+{% endif %}

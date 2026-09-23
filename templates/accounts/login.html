@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Quietwork{% endblock %}
+{% block content %}
+<form class="auth" method="post" novalidate>
+  {% csrf_token %}
+  <h1>Sign in</h1>
+  {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  {% for field in form %}{% include "accounts/_field.html" %}{% endfor %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+  <p class="small"><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p>
+  <p class="small muted">New here? <a href="{% url 'accounts:signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Create an account</a></p>
+</form>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Quietwork · Live programs with Elena Marsh{% endblock %}</title>
+  <meta name="description" content="{% block description %}Eight-week live programs and a workshop on habits, boundaries and quiet confidence. Small groups on Zoom.{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/quietwork.css' %}">
+  <script src="{% static 'js/quietwork.js' %}" defer></script>
+</head>
+<body>
+{% block header %}
+<header class="wrap site-header">
+  <a class="logo" href="{% url 'catalog:home' %}">Quietwork</a>
+  <nav class="nav" aria-label="Main">
+    <a href="{% url 'catalog:home' %}#programs">Programs</a>
+    <a href="{% url 'catalog:home' %}#workshop">Live workshop</a>
+    <a href="{% url 'catalog:home' %}#about">About Elena</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'bookings:my_programs' %}"{% if request.resolver_match.url_name == 'my_programs' %} class="current" aria-current="page"{% endif %}>My programs</a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="link-button" type="submit">Sign out</button></form>
+      <span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span>
+    {% else %}
+      <a href="{% url 'accounts:login' %}">Sign in</a>
+      <a class="btn btn-primary" href="{% url 'catalog:home' %}#programs">Join a program</a>
+    {% endif %}
+  </nav>
+</header>
+{% endblock %}
+
+{% if messages %}
+<ul class="wrap messages" role="status">
+  {% for message in messages %}<li class="message {{ message.tags }}">{{ message }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<main id="content">{% block content %}{% endblock %}</main>
+
+{% block footer %}
+<footer class="wrap site-footer">
+  <span class="logo">Quietwork</span>
+  <nav aria-label="Footer">
+    <a href="{% url 'catalog:home' %}#programs">Programs</a>
+    <a href="{% url 'catalog:home' %}#workshop">Live workshop</a>
+    <a href="mailto:hello@quietwork.example">Contact</a>
+  </nav>
+  <span>A portfolio demo by Andreea Tech. Elena Marsh is a fictional teacher.</span>
+</footer>
+{% endblock %}
+</body>
+</html>

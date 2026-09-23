@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load quietwork humanize %}
+{% block title %}{{ program.title }} · Quietwork{% endblock %}
+{% block description %}{{ program.tagline }}{% endblock %}
+{% block content %}
+<div class="wrap program">
+  <div class="stack gap-48">
+    <div class="stack gap-20">
+      <p class="small muted"><a class="muted" href="{% url 'catalog:home' %}#programs">Programs</a> / {{ program.title }}</p>
+      <h1>{{ program.title }}</h1>
+      <p class="lead">{{ program.description }}</p>
+      <div class="chips">
+        <span>{{ topic_count }} weekly sessions on Zoom</span>
+        {% if cohort %}<span>{{ cohort.starts_at|date:"l" }}s · {{ cohort.starts_at|date:"H:i T" }} · {{ program.session_minutes }} min</span>
+        <span>Up to {{ cohort.capacity }} people</span>{% endif %}
+      </div>
+    </div>
+
+    {% if program.outcome_list %}
+    <section class="stack gap-20">
+      <h2>What you will practise</h2>
+      <ul class="outcomes">{% for item in program.outcome_list %}<li>{{ item }}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+
+    {% if sessions %}
+    <section class="stack gap-28">
+      <div class="panel-row" style="align-items: baseline">
+        <h2>The {{ sessions|length|apnumber }} sessions</h2>
+        <span class="small muted">{{ cohort.name }} · {% with last=sessions|last %}{{ sessions.0.starts_at|date:"j M" }} – {{ last.starts_at|date:"j M" }}{% endwith %}</span>
+      </div>
+      <ol class="timeline">
+        {% for s in sessions %}
+        <li><span class="dot" aria-hidden="true"></span>
+          <div class="item"><span class="eyebrow">Session {{ s.number }} · {{ s.starts_at|date:"D, j M" }}</span><span class="serif">{{ s.title }}</span></div>
+        </li>
+        {% endfor %}
+      </ol>
+      <p class="small muted">Can't make one evening? Each session is recorded, and the recording appears in your account the next day.</p>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="booking" aria-label="Book a seat">
+    {% if cohort %}
+      {% with left=cohort|seats_left %}
+      <div class="stack gap-8">
+        <span class="eyebrow">Next group</span>
+        <span class="when">Starts {{ cohort.starts_at|date:"D, j F" }}</span>
+      </div>
+      <div class="seats">
+        <div class="seats-row"><strong>{% if left %}{{ left }} of {{ cohort.capacity }} seats left{% else %}Sold out{% endif %}</strong><span class="muted">Small group on purpose</span></div>
+        <div class="bar"><span style="width: {{ cohort|seats_percent_taken }}%"></span></div>
+      </div>
+      {% if already_in %}
+        <p>You have a seat in this group.</p>
+        <a class="btn btn-primary btn-block" href="{% url 'bookings:my_programs' %}">Go to my programs</a>
+      {% elif left %}
+      <form method="post" action="{% url 'catalog:reserve_program' program.slug %}" class="stack gap-20">
+        {% csrf_token %}
+        <input type="hidden" name="cohort" value="{{ cohort.pk }}">
+        <fieldset class="plans">
+          <legend class="eyebrow">How would you like to pay?</legend>
+          <label class="plan">
+            <input type="radio" name="plan" value="full" checked>
+            <span class="plan-text">
+              <span class="plan-line"><span>Pay in full</span><span>{{ program.price_full_cents|euros }}</span></span>
+              <span class="tiny muted">One payment{% if program.full_payment_saving_cents %}, {{ program.full_payment_saving_cents|euros }} less overall{% endif %}.</span>
+            </span>
+          </label>
+          <label class="plan">
+            <input type="radio" name="plan" value="instalments">
+            <span class="plan-text">
+              <span class="plan-line"><span>{{ program.instalment_count|apnumber|capfirst }} monthly payments</span><span>{{ program.instalment_count }} × {{ program.instalment_cents|euros }}</span></span>
+              <span class="tiny muted">{{ program.instalment_cents|euros }} today, then once a month. Nothing after the last one.</span>
+            </span>
+          </label>
+        </fieldset>
+        {% if user.is_authenticated %}
+          <button class="btn btn-primary btn-block" type="submit">Reserve your seat</button>
+        {% else %}
+          <a class="btn btn-primary btn-block" href="{% url 'accounts:signup' %}?next={{ request.path|urlencode }}">Create an account to book</a>
+          <p class="tiny muted" style="text-align:center">Already have one? <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a></p>
+        {% endif %}
+      </form>
+      {% else %}
+        <p>This group is full. The next one will be announced here.</p>
+      {% endif %}
+      {% endwith %}
+      <ul class="includes">
+        <li>{{ topic_count }} live sessions on Zoom</li>
+        <li>A recording after every session</li>
+        <li>A weekly exercise and Elena's notes</li>
+        <li>Everything stays in your account after the program ends</li>
+      </ul>
+      <p class="foot">Secure payment with Stripe. The Zoom link appears in your account after booking.</p>
+    {% else %}
+      <span class="when">Next group coming soon</span>
+      <p class="muted">There is no open group for this program right now.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

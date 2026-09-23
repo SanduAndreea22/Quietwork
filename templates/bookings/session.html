@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Session {{ session.number }}: {{ session.title }} · Quietwork{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="session-layout">
+  <aside class="rail" aria-label="Program sessions">
+    <a class="small" href="{% url 'bookings:my_programs' %}" style="text-decoration: none">← My programs</a>
+    <div class="stack gap-8">
+      <span class="serif title">{{ program.title }}</span>
+      <span class="small muted">{{ cohort.name }} · {{ done_count }} of {{ total }} sessions done</span>
+    </div>
+    <ol>
+      {% for node in nodes %}
+      <li class="{% if node.done %}done{% elif node.session.starts_at > now %}upcoming{% endif %}{% if node.is_next %} next{% endif %}{% if node.session.pk == session.pk %} current{% endif %}">
+        <a href="{{ node.session.get_absolute_url }}"{% if node.session.pk == session.pk %} aria-current="page"{% endif %}>
+          <span class="node" aria-hidden="true">{% if node.done %}✓{% endif %}</span>
+          <span class="t">
+            <span class="name">{{ node.session.title }}</span>
+            <span class="meta">{% if node.is_next and node.session.starts_at|date:"Ymd" == now|date:"Ymd" %}Today · {{ node.session.starts_at|date:"H:i T" }}{% else %}{{ node.session.starts_at|date:"D, j M" }}{% if node.session.recording_url %} · Recording{% endif %}{% endif %}</span>
+          </span>
+          {% if node.done %}<span class="visually-hidden">(done)</span>{% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
+  </aside>
+
+  <div class="session-main">
+    {% if messages %}
+    <ul class="messages" role="status" style="margin: 0">{% for message in messages %}<li class="message {{ message.tags }}">{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <section class="banner{% if not is_upcoming %} past{% endif %}">
+      <div class="stack gap-12">
+        <span class="eyebrow">Session {{ session.number }} · {% if is_today %}Today · {% endif %}{{ session.starts_at|date:"D j F · H:i T" }}</span>
+        <h1>{{ session.title }}</h1>
+      </div>
+      {% if is_upcoming %}
+      <div class="side">
+        <div class="clock" data-countdown="{{ session.starts_at|date:'c' }}" data-opens="{% if not joinable %}{{ session.join_opens_at|date:'c' }}{% endif %}" aria-label="Time until the session starts">
+          {% if countdown.days %}<span class="n" data-unit="days">{{ countdown.days|stringformat:"02d" }}</span><span class="u">days</span>{% endif %}
+          <span class="n" data-unit="hours">{{ countdown.hours|stringformat:"02d" }}</span><span class="u">h</span>
+          <span class="n" data-unit="minutes">{{ countdown.minutes|stringformat:"02d" }}</span><span class="u">min</span>
+        </div>
+        {% url 'bookings:join_session' session.pk as join_url %}
+        {% include "bookings/_join.html" with joinable=joinable url=join_url opens_label=session.join_opens_at|time:"H:i" %}
+      </div>
+      {% endif %}
+    </section>
+
+    <div class="split">
+      <div class="prose">
+        <h2>{% if is_upcoming %}What we'll work on{% else %}What we worked on{% endif %}</h2>
+        {% if session.topic.summary %}<p>{{ session.topic.summary }}</p>{% else %}<p class="muted">Elena will add a short outline before the session.</p>{% endif %}
+      </div>
+      {% if session.topic.exercise %}
+      <div class="exercise">
+        <span class="serif">{% if is_upcoming %}Before the session{% else %}This week's exercise{% endif %}</span>
+        <p>{{ session.topic.exercise }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if recap %}
+    <section class="recap" aria-labelledby="recap-title">
+      <div class="panel-row">
+        <div class="stack gap-8">
+          <span class="eyebrow">{% if recap.pk != session.pk %}From last session · {% endif %}{{ recap.starts_at|date:"D, j F" }}</span>
+          <h2 id="recap-title">{{ recap.title }}</h2>
+        </div>
+        {% if recap.has_started %}
+        <form class="done-form" method="post" action="{% url 'bookings:toggle_done' recap.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="back" value="{{ request.path }}">
+          {% if recap_done %}
+            <input type="hidden" name="done" value="0">
+            <button class="pill" type="submit" style="border: 0; cursor: pointer; font: inherit; font-weight: 500">✓ Marked as done <span class="visually-hidden">(undo)</span></button>
+          {% else %}
+            <input type="hidden" name="done" value="1">
+            <button class="btn btn-primary" type="submit">Mark as done</button>
+          {% endif %}
+        </form>
+        {% endif %}
+      </div>
+      <div class="split">
+        <div class="video">
+          {% if recap.youtube_id %}
+            <iframe src="https://www.youtube-nocookie.com/embed/{{ recap.youtube_id }}?rel=0" title="Recording: {{ recap.title }}" allow="encrypted-media; picture-in-picture; fullscreen" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          {% else %}
+            The recording appears here the day after the session.
+          {% endif %}
+        </div>
+        <div class="notes">
+          <span class="serif">Elena's notes</span>
+          {% if recap.notes %}<p>{{ recap.notes }}</p>{% else %}<p class="muted">Elena's notes will be added after the session.</p>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <nav class="pager" aria-label="Sessions">
+      {% if previous %}<a href="{{ previous.get_absolute_url }}">← Session {{ previous.number }}: {{ previous.title }}</a>{% else %}<span></span>{% endif %}
+      {% if following %}<a href="{{ following.get_absolute_url }}">Session {{ following.number }}: {{ following.title }} →</a>{% endif %}
+    </nav>
+  </div>
+</div>
+{% endblock %}

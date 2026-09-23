@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load quietwork %}
+{% block content %}
+<div class="home">
+  <svg class="page-thread" viewBox="0 0 1440 3080" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M -20 610 C 180 600, 300 650, 520 628 S 760 560, 800 600 C 900 700, 1380 520, 1360 760 C 1340 960, 900 900, 760 960 S 120 1000, 80 1180 C 40 1400, 200 1560, 60 1760 S 300 1980, 720 1990 C 1100 2000, 1400 2100, 1380 2330 C 1360 2520, 900 2440, 700 2560 S 300 2760, 520 2880 C 700 2980, 1100 2940, 1460 3000"></path>
+  </svg>
+
+  <section class="wrap hero">
+    <div class="stack gap-28">
+      <p class="eyebrow">Live programs with Elena Marsh</p>
+      <h1>Small, steady work on the things that <em>matter to you.</em></h1>
+      <p class="lead">Eight-week programs and a live workshop on habits, boundaries and quiet confidence. A small group, one evening a week on Zoom, and a short exercise to carry into the days between.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#programs">See the programs</a>
+        {% if workshop %}<a class="btn btn-ghost" href="#workshop">See the live workshop</a>{% endif %}
+      </div>
+    </div>
+    <div class="photo" role="img" aria-label="Morning light on a desk, a mug and an open notebook">[Photo: morning light on a desk, a mug and an open notebook]</div>
+  </section>
+
+  <section id="programs" class="wrap section stack gap-48">
+    <div class="stack gap-12">
+      <h2>Programs</h2>
+      <p class="muted">Eight weeks, one evening a week, up to twelve people.</p>
+    </div>
+    <div class="cards">
+      {% for program in programs %}
+      {% with cohort=program.next_cohort %}
+      <article class="card">
+        <div class="photo" role="img" aria-label="{{ program.photo_caption }}">[Photo: {{ program.photo_caption }}]</div>
+        <div class="card-body">
+          <p class="eyebrow">{% if cohort %}Starts {{ cohort.starts_at|date:"D, j F" }}{% else %}Next group coming soon{% endif %}</p>
+          <h3><a href="{{ program.get_absolute_url }}">{{ program.title }}</a></h3>
+          <p>{{ program.tagline }}</p>
+          {% if cohort %}<p class="small muted">{{ cohort.starts_at|date:"l" }}s · {{ cohort.starts_at|date:"H:i T" }} · {{ program.session_minutes }} min</p>{% endif %}
+          <div class="card-foot">
+            <div class="stack">
+              <span class="price">{{ program.price_full_cents|euros }}</span>
+              <span class="tiny muted">or {{ program.instalment_count }} × {{ program.instalment_cents|euros }}</span>
+            </div>
+            {% if cohort %}
+              {% with left=cohort|seats_left %}
+              {% if left %}<span class="pill">{{ left }} of {{ cohort.capacity }} seats left</span>{% else %}<span class="pill pill-dark">Sold out</span>{% endif %}
+              {% endwith %}
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% endwith %}
+      {% empty %}
+      <p class="muted">New programs are on their way.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if workshop %}
+  <div class="wrap">
+  <section id="workshop" class="workshop">
+    <div class="stack gap-20">
+      <p class="eyebrow">Live workshop · one evening</p>
+      <h2>{{ workshop.title }}</h2>
+      <p class="lead">{{ workshop.description }}</p>
+    </div>
+    <div class="workshop-box">
+      <dl class="facts">
+        <div><dt class="eyebrow">Date</dt><dd>{{ workshop.starts_at|date:"D, j F" }}</dd></div>
+        <div><dt class="eyebrow">Time</dt><dd>{{ workshop.starts_at|date:"H:i T" }} · {{ workshop.duration_minutes }} min</dd></div>
+        <div><dt class="eyebrow">Where</dt><dd>Online, on Zoom</dd></div>
+        <div><dt class="eyebrow">Price</dt><dd>{{ workshop.price_cents|euros }}</dd></div>
+      </dl>
+      {% with left=workshop|seats_left %}
+      <div class="seats">
+        <div class="seats-row"><strong>{% if left %}{{ left }} of {{ workshop.capacity }} seats left{% else %}Sold out{% endif %}</strong><span class="muted">Small group on purpose</span></div>
+        <div class="bar"><span style="width: {{ workshop|seats_percent_taken }}%"></span></div>
+      </div>
+      {% if left %}
+      <form method="post" action="{% url 'catalog:reserve_workshop' workshop.slug %}">
+        {% csrf_token %}
+        <button class="btn btn-primary btn-block" type="submit">Reserve your seat</button>
+      </form>
+      {% else %}
+      <span class="btn btn-ghost btn-block" aria-disabled="true">Sold out</span>
+      {% endif %}
+      {% endwith %}
+      <p class="tiny muted" style="text-align: center">The Zoom link appears in your account after booking.</p>
+    </div>
+  </section>
+  </div>
+  {% endif %}
+
+  <section class="wrap section stack gap-48" style="padding-top: 140px">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="stack gap-12"><span class="num">1</span><h3>Join a small group</h3><p>Each program runs with up to twelve people, on the same evening every week, for eight weeks.</p></div>
+      <div class="stack gap-12"><span class="num">2</span><h3>Meet on Zoom</h3><p>Your Zoom link waits in your account and opens fifteen minutes before each session.</p></div>
+      <div class="stack gap-12"><span class="num">3</span><h3>Keep going in between</h3><p>A short exercise each week, Elena's notes, and the recording if you missed an evening. The thread fills in as you go.</p></div>
+    </div>
+  </section>
+
+  <section id="about" class="wrap section about">
+    <div class="photo" role="img" aria-label="Elena, natural light, not posed">[Photo: Elena, natural light, not posed]</div>
+    <div class="stack gap-20">
+      <p class="eyebrow">About Elena</p>
+      <h2>Hi, I'm Elena.</h2>
+      <p>[A short, honest paragraph from Elena: who she works with, how she runs her groups, and why she keeps them small and weekly instead of one long weekend.]</p>
+      <p class="note">These are practice groups, not therapy. If you are going through something heavy, please talk to a professional first.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

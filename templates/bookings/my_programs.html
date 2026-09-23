@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load quietwork %}
+{% block title %}My programs · Quietwork{% endblock %}
+{% block content %}
+<div class="wrap member">
+  <h1>Welcome back, {{ user.display_name }}.</h1>
+
+  {% if checkout_success %}
+  <p class="message" role="status">Thank you. Your payment went through. If your seat isn't here yet, it will be in a moment: refresh the page.</p>
+  {% endif %}
+  {% for e in pending_enrollments %}
+  <p class="message">Waiting for payment confirmation for <strong>{{ e.cohort.program.title }}</strong> ({{ e.cohort.name }}).</p>
+  {% endfor %}
+
+  {% if next_up %}
+  <section class="next-up" aria-labelledby="next-up-title">
+    <div class="stack gap-12">
+      <p class="eyebrow">Next up · {% if next_up.starts_at|date:"Ymd" == now|date:"Ymd" %}today{% else %}{{ next_up.starts_at|date:"l, j F" }}{% endif %}</p>
+      <h2 id="next-up-title">{{ next_up.title }}</h2>
+      <p class="sub">{{ next_up.subtitle }} · {{ next_up.starts_at|date:"D j F · H:i T" }} · {{ next_up.duration_minutes }} min on Zoom</p>
+      {% if next_up.page_url %}<p><a class="small" style="color: var(--sage)" href="{{ next_up.page_url }}">Open the session page →</a></p>{% endif %}
+    </div>
+    <div class="panel-row" style="gap: 36px">
+      <div class="count" data-countdown="{{ next_up.starts_at|date:'c' }}" data-opens="{% if not next_up.joinable %}{{ next_up.starts_at|date:'c' }}{% endif %}" aria-label="Time until it starts">
+        {% if next_up_countdown.days %}<div><span class="n" data-unit="days">{{ next_up_countdown.days|stringformat:"02d" }}</span><span class="u">days</span></div>{% endif %}
+        <div><span class="n" data-unit="hours">{{ next_up_countdown.hours|stringformat:"02d" }}</span><span class="u">hours</span></div>
+        <div><span class="n" data-unit="minutes">{{ next_up_countdown.minutes|stringformat:"02d" }}</span><span class="u">min</span></div>
+      </div>
+      <div class="join">
+        {% include "bookings/_join.html" with joinable=next_up.joinable url=next_up.join_url opens_label="" %}
+        {% if not next_up.joinable %}<span class="tiny">Opens {{ join_opens_minutes }} min before start</span>{% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if current_programs or finished_programs %}
+  <section class="stack gap-20" aria-labelledby="programs-title">
+    <h2 id="programs-title" style="font-size: 34px">Your programs</h2>
+    {% for p in current_programs %}
+    <article class="panel">
+      <div class="panel-head">
+        <div class="stack gap-8">
+          <span class="serif title">{{ p.program.title }}</span>
+          <span class="muted">{{ p.cohort.name }} · {{ p.cohort.starts_at|date:"l" }}s {{ p.cohort.starts_at|date:"H:i T" }} · {{ p.done_count }} of {{ p.total }} sessions done</span>
+        </div>
+        <a class="btn btn-primary" href="{{ p.open_url }}">Open program</a>
+      </div>
+      <ol class="thread-h" style="--done: {{ p.thread_fill }}" aria-label="{{ p.done_count }} of {{ p.total }} sessions done">
+        {% for node in p.nodes %}
+        <li class="{% if node.done %}done{% endif %}{% if node.is_next %} next{% endif %}">
+          <a href="{{ node.session.get_absolute_url }}" class="node" aria-label="Session {{ node.session.number }}: {{ node.session.title }}{% if node.done %} (done){% endif %}"></a>
+          <span class="label">{% if node.is_next and node.session.starts_at|date:"Ymd" == now|date:"Ymd" %}Today{% else %}{{ node.session.starts_at|date:"j M" }}{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% with e=p.enrollment %}
+      {% if e.payment_problem %}
+        <p class="foot warn">Your last monthly payment didn't go through. Stripe will try again. If your card has changed, please get in touch.</p>
+      {% elif e.plan == "instalments" and e.instalments_remaining %}
+        <p class="foot">Payment: {{ e.instalments_paid }} of {{ p.program.instalment_count }} monthly payments made. The next {{ p.program.instalment_cents|euros }} is charged a month after the last one. Nothing after the final payment.</p>
+      {% endif %}
+      {% endwith %}
+    </article>
+    {% endfor %}
+
+    {% for p in finished_programs %}
+    <article class="panel">
+      <div class="panel-row">
+        <div class="stack gap-8">
+          <span class="serif title" style="font-size: 28px">{{ p.program.title }}</span>
+          <span class="muted">{{ p.cohort.name }} · finished · {{ p.done_count }} of {{ p.total }} · recordings and notes stay here</span>
+        </div>
+        <a class="btn btn-ghost" href="{{ p.open_url }}">Rewatch</a>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if workshop_bookings or suggestion %}
+  <section class="duo">
+    {% for b in workshop_bookings %}
+    <article class="tile sage">
+      <span class="eyebrow">Your live workshop</span>
+      <span class="serif">{{ b.workshop.title }}</span>
+      <span>{{ b.workshop.starts_at|date:"D, j F · H:i T" }} · {{ b.workshop.duration_minutes }} min on Zoom</span>
+      <div class="panel-row">
+        <strong style="color: var(--moss)">{% if b.workshop.starts_at|date:"Ymd" == now|date:"Ymd" %}Today{% else %}In {{ b.workshop.starts_at|timeuntil:now }}{% endif %}</strong>
+        <span class="tiny muted">The link opens {{ join_opens_minutes }} min before start</span>
+      </div>
+    </article>
+    {% endfor %}
+    {% if suggestion %}
+    <article class="tile">
+      <span class="eyebrow">When you are ready for the next step</span>
+      <span class="serif">{{ suggestion.program.title }}</span>
+      <span>{{ suggestion.program.tagline }} The next group starts {{ suggestion.starts_at|date:"D, j F" }}.</span>
+      <a href="{{ suggestion.program.get_absolute_url }}">See the program →</a>
+    </article>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if not has_anything and not pending_enrollments %}
+  <section class="empty">
+    <h2 style="font-size: 34px">Nothing booked yet</h2>
+    <p class="muted">When you join a program or the live workshop, your sessions, Zoom links and recordings will be here.</p>
+    <a class="btn btn-primary" href="{% url 'catalog:home' %}#programs">See the programs</a>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
