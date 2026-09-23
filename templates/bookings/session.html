@@ -75,10 +75,10 @@
           <input type="hidden" name="back" value="{{ request.path }}">
           {% if recap_done %}
             <input type="hidden" name="done" value="0">
-            <button class="pill" type="submit" style="border: 0; cursor: pointer; font: inherit; font-weight: 500">✓ Marked as done <span class="visually-hidden">(undo)</span></button>
+            <button class="pill pill-progress pill-button" type="submit">✓ Marked as done <span class="visually-hidden">(undo)</span></button>
           {% else %}
             <input type="hidden" name="done" value="1">
-            <button class="btn btn-primary" type="submit">Mark as done</button>
+            <button class="btn btn-progress" type="submit">Mark as done</button>
           {% endif %}
         </form>
         {% endif %}

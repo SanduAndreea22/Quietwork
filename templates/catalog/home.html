@@ -19,6 +19,17 @@
     <div class="photo" role="img" aria-label="Morning light on a desk, a mug and an open notebook">[Photo: morning light on a desk, a mug and an open notebook]</div>
   </section>
 
+  <section class="band" aria-labelledby="how-title">
+    <div class="wrap stack gap-48">
+      <h2 id="how-title">How it works</h2>
+      <ol class="steps">
+        <li class="stack gap-12"><span class="num" aria-hidden="true">1</span><h3>Join a small group</h3><p>Each program runs with up to twelve people, on the same evening every week, for eight weeks.</p></li>
+        <li class="stack gap-12"><span class="num" aria-hidden="true">2</span><h3>Meet on Zoom</h3><p>Your Zoom link waits in your account and opens fifteen minutes before each session.</p></li>
+        <li class="stack gap-12"><span class="num" aria-hidden="true">3</span><h3>Keep going in between</h3><p>A short exercise each week, Elena's notes, and the recording if you missed an evening. The thread fills in as you go.</p></li>
+      </ol>
+    </div>
+  </section>
+
   <section id="programs" class="wrap section stack gap-48">
     <div class="stack gap-12">
       <h2>Programs</h2>
@@ -41,7 +52,7 @@
             </div>
             {% if cohort %}
               {% with left=cohort|seats_left %}
-              {% if left %}<span class="pill">{{ left }} of {{ cohort.capacity }} seats left</span>{% else %}<span class="pill pill-dark">Sold out</span>{% endif %}
+              {% if not left %}<span class="pill pill-dark">Sold out</span>{% elif left <= 3 and left < cohort.capacity %}<span class="pill pill-progress">Only {{ left }} of {{ cohort.capacity }} left</span>{% else %}<span class="pill pill-outline">{{ left }} of {{ cohort.capacity }} seats left</span>{% endif %}
               {% endwith %}
             {% endif %}
           </div>
@@ -77,7 +88,7 @@
       {% if left %}
       <form method="post" action="{% url 'catalog:reserve_workshop' workshop.slug %}">
         {% csrf_token %}
-        <button class="btn btn-primary btn-block" type="submit">Reserve your seat</button>
+        <button class="btn btn-primary btn-block" type="submit">Reserve your seat <span class="btn-count">{{ left }} left</span></button>
       </form>
       {% else %}
       <span class="btn btn-ghost btn-block" aria-disabled="true">Sold out</span>
@@ -89,14 +100,6 @@
   </div>
   {% endif %}
 
-  <section class="wrap section stack gap-48" style="padding-top: 140px">
-    <h2>How it works</h2>
-    <div class="steps">
-      <div class="stack gap-12"><span class="num">1</span><h3>Join a small group</h3><p>Each program runs with up to twelve people, on the same evening every week, for eight weeks.</p></div>
-      <div class="stack gap-12"><span class="num">2</span><h3>Meet on Zoom</h3><p>Your Zoom link waits in your account and opens fifteen minutes before each session.</p></div>
-      <div class="stack gap-12"><span class="num">3</span><h3>Keep going in between</h3><p>A short exercise each week, Elena's notes, and the recording if you missed an evening. The thread fills in as you go.</p></div>
-    </div>
-  </section>
 
   <section id="about" class="wrap section about">
     <div class="photo" role="img" aria-label="Elena, natural light, not posed">[Photo: Elena, natural light, not posed]</div>

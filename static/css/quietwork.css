@@ -47,6 +47,13 @@ em { font-style: italic; }
 .btn-block { width: 100%; }
 .pill { display: inline-block; font-size: 14px; font-weight: 500; color: var(--moss); background: var(--sage); padding: 7px 14px; border-radius: 999px; }
 .pill-dark { background: var(--moss); color: var(--oat); }
+/* Blue is the colour of progress: the thread, "done", seats filling up. Text on it stays ink. */
+.pill-progress { background: var(--blue); color: var(--ink); }
+.pill-outline { background: transparent; color: var(--moss); box-shadow: inset 0 0 0 1px var(--sage); }
+.pill-button { border: 0; cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; min-height: 40px; }
+.btn-progress { background: var(--blue); color: var(--ink); border-color: var(--blue); }
+.btn-progress:hover { background: var(--moss); color: var(--oat); border-color: var(--moss); }
+.btn-count { font-size: 13px; font-weight: 600; background: var(--blue); color: var(--ink); padding: 5px 10px; border-radius: 999px; margin-left: 4px; }
 
 /* Header / footer */
 .site-header { display: flex; align-items: center; justify-content: space-between; height: 96px; }
@@ -78,7 +85,13 @@ em { font-style: italic; }
 .home > .page-thread { position: absolute; z-index: 0; }
 
 /* Photo placeholders (no stock photos: real ones are added later) */
-.photo { background: var(--sage); border-radius: 24px; display: flex; align-items: flex-end; padding: 24px; font-size: 13px; color: var(--ink-soft); }
+.photo {
+  position: relative; border-radius: 24px; display: flex; align-items: flex-end; padding: 24px; font-size: 13px; color: var(--ink-soft);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.145 0 0 0 0 0.188 0 0 0 0 0.165 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    radial-gradient(120% 90% at 85% 10%, var(--oat) 0%, transparent 60%),
+    linear-gradient(160deg, var(--sage) 0%, var(--oat) 100%);
+}
 
 /* Home */
 .hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 80px; align-items: center; padding-top: 56px; padding-bottom: 120px; }
@@ -112,9 +125,13 @@ em { font-style: italic; }
 .seats-row strong { color: var(--moss); }
 .bar { height: 6px; background: var(--sage); border-radius: 999px; overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--blue); }
-.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; }
-.steps .num { font-family: var(--serif); font-size: 40px; color: var(--blue); }
-.steps h3 { font-size: 26px; }
+.band { background: var(--moss); color: var(--oat); padding-top: 96px; padding-bottom: 96px; margin-bottom: 120px; }
+.band h2 { color: var(--oat); font-size: 48px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; list-style: none; margin: 0; padding: 0; }
+.steps li { border-top: 1px solid var(--ink-soft); padding-top: 24px; }
+.steps .num { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--blue); }
+.steps h3 { font-size: 26px; color: var(--oat); }
+.steps p { color: var(--sage); }
 .about { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 80px; align-items: center; }
 .about .photo { height: 460px; }
 .about p { font-size: 18px; line-height: 1.65; }
@@ -260,7 +277,8 @@ em { font-style: italic; }
   .about .photo { height: 280px; }
   .cards, .steps, .outcomes { grid-template-columns: minmax(0, 1fr); }
   .section { padding-bottom: 72px; }
-  .section h2, .workshop h2 { font-size: 36px; }
+  .section h2, .workshop h2, .band h2 { font-size: 36px; }
+  .band { padding-top: 56px; padding-bottom: 56px; margin-bottom: 72px; }
   .workshop { padding: 28px 20px; border-radius: 22px; }
   .next-up, .banner, .panel-head, .panel-row { flex-direction: column; align-items: flex-start; }
   .next-up { padding: 28px 22px; }

@@ -77,7 +77,7 @@
           </label>
         </fieldset>
         {% if user.is_authenticated %}
-          <button class="btn btn-primary btn-block" type="submit">Reserve your seat</button>
+          <button class="btn btn-primary btn-block" type="submit">Reserve your seat <span class="btn-count">{{ left }} left</span></button>
         {% else %}
           <a class="btn btn-primary btn-block" href="{% url 'accounts:signup' %}?next={{ request.path|urlencode }}">Create an account to book</a>
           <p class="tiny muted" style="text-align:center">Already have one? <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a></p>
