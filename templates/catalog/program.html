@@ -113,7 +113,8 @@
         {% endif %}
       </form>
       {% else %}
-        <p>This group is full. The next one will be announced here.</p>
+        {% url 'catalog:program_waitlist' program.slug as waitlist_url %}
+        {% include "catalog/_waitlist_form.html" with action=waitlist_url title="This group is full." key="program" %}
       {% endif %}
       {% endwith %}
       <ul class="includes">
@@ -125,7 +126,8 @@
       <p class="foot">Secure payment with Stripe. The Zoom link appears in your account after booking.</p>
     {% else %}
       <span class="when">Next group coming soon</span>
-      <p class="muted">There is no open group for this program right now.</p>
+      {% url 'catalog:program_waitlist' program.slug as waitlist_url %}
+      {% include "catalog/_waitlist_form.html" with action=waitlist_url title="Hear when it opens." key="program" %}
     {% endif %}
   </aside>
 </div>

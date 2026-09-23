@@ -52,7 +52,7 @@
             </div>
             {% if cohort %}
               {% with left=cohort|seats_left %}
-              {% if not left %}<span class="pill pill-dark">Sold out</span>{% elif left <= 3 and left < cohort.capacity %}<span class="pill pill-progress">Only {{ left }} of {{ cohort.capacity }} left</span>{% else %}<span class="pill pill-outline">{{ left }} of {{ cohort.capacity }} seats left</span>{% endif %}
+              {% if not left %}<a class="pill pill-dark pill-link" href="{{ program.get_absolute_url }}#waitlist">Sold out · join the waitlist</a>{% elif left <= 3 and left < cohort.capacity %}<span class="pill pill-progress">Only {{ left }} of {{ cohort.capacity }} left</span>{% else %}<span class="pill pill-outline">{{ left }} of {{ cohort.capacity }} seats left</span>{% endif %}
               {% endwith %}
             {% endif %}
           </div>
@@ -91,7 +91,8 @@
         <button class="btn btn-primary btn-block" type="submit">Reserve your seat <span class="btn-count">{{ left }} left</span></button>
       </form>
       {% else %}
-      <span class="btn btn-ghost btn-block" aria-disabled="true">Sold out</span>
+      {% url 'catalog:workshop_waitlist' workshop.slug as waitlist_url %}
+      {% include "catalog/_waitlist_form.html" with action=waitlist_url title="This evening is full." key="workshop" %}
       {% endif %}
       {% endwith %}
       <p class="tiny muted" style="text-align: center">The Zoom link appears in your account after booking.</p>

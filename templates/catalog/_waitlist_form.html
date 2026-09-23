@@ -1,0 +1,11 @@
+<form id="waitlist" class="waitlist" method="post" action="{{ action }}">
+  {% csrf_token %}
+  <p class="waitlist-title serif">{{ title }}</p>
+  <p class="small muted">Leave your email and we'll write once, when a seat opens. Nothing else.</p>
+  <div class="waitlist-row">
+    <label class="visually-hidden" for="waitlist-email-{{ key }}">Your email</label>
+    <input id="waitlist-email-{{ key }}" type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="{% if user.is_authenticated and not user.is_demo %}{{ user.email }}{% endif %}">
+    <button class="btn btn-primary" type="submit">Tell me</button>
+  </div>
+  <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+</form>

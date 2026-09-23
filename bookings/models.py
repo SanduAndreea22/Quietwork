@@ -119,3 +119,32 @@ class StripeEvent(models.Model):
 
     def __str__(self):
         return f"{self.type} · {self.event_id}"
+
+
+class WaitlistEntry(models.Model):
+    """Someone who wants to hear when a seat opens: in a program's next group, or at a workshop."""
+
+    program = models.ForeignKey(
+        "catalog.Program", null=True, blank=True, on_delete=models.CASCADE, related_name="waitlist"
+    )
+    workshop = models.ForeignKey(Workshop, null=True, blank=True, on_delete=models.CASCADE, related_name="waitlist")
+    email = models.EmailField()
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    notified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name_plural = "waitlist"
+        constraints = [
+            models.CheckConstraint(
+                condition=(Q(program__isnull=False) & Q(workshop__isnull=True))
+                | (Q(program__isnull=True) & Q(workshop__isnull=False)),
+                name="waitlist_for_program_or_workshop",
+            ),
+            models.UniqueConstraint(fields=["program", "email"], condition=Q(program__isnull=False), name="one_waitlist_entry_per_program"),
+            models.UniqueConstraint(fields=["workshop", "email"], condition=Q(workshop__isnull=False), name="one_waitlist_entry_per_workshop"),
+        ]
+
+    def __str__(self):
+        return f"{self.email} · {self.program or self.workshop}"

@@ -17,10 +17,10 @@ from catalog.demo_content import DEMO_PROGRAM_SLUG
 from catalog.models import Cohort, Program, Session, Workshop
 from catalog.selectors import next_open_cohorts
 
-from . import services, stripe_gateway
+from . import services, stripe_gateway, waitlist
 from .calendar import calendar_response, session_events, workshop_event
 from .demo import effective_now, is_demo_user
-from .forms import ReserveForm
+from .forms import ReserveForm, WaitlistForm
 from .models import Enrollment, SeatBase, SessionCompletion, StripeEvent, WorkshopBooking
 from .progress import build_dashboard, build_session_page
 from .welcome import build_welcome, find_seat
@@ -84,6 +84,28 @@ def reserve_workshop(request, slug):
         messages.error(request, str(exc))
         return redirect("/#workshop")
     return _start_checkout(request, seat, released, stripe_gateway.create_workshop_checkout, "/#workshop")
+
+
+def _join_waitlist(request, back, **target):
+    form = WaitlistForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Please enter a valid email address.")
+    elif not form.is_bot():
+        waitlist.join(form.cleaned_data["email"], user=request.user, **target)
+        messages.success(request, "You're on the list. We'll email you once, when a seat opens.")
+    return redirect(back)
+
+
+@require_POST
+def join_program_waitlist(request, slug):
+    program = get_object_or_404(Program, slug=slug, is_published=True)
+    return _join_waitlist(request, program.get_absolute_url() + "#waitlist", program=program)
+
+
+@require_POST
+def join_workshop_waitlist(request, slug):
+    workshop = get_object_or_404(Workshop, slug=slug, is_published=True)
+    return _join_waitlist(request, "/#workshop", workshop=workshop)
 
 
 @login_required

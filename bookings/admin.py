@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from .models import Enrollment, SessionCompletion, StripeEvent, WorkshopBooking
+from django.contrib import messages
+
+from . import waitlist
+from .models import Enrollment, SessionCompletion, StripeEvent, WaitlistEntry, WorkshopBooking
 
 STRIPE_FIELDS = ("stripe_checkout_session_id", "stripe_customer_id", "amount_paid_cents", "paid_at", "created_at")
 
@@ -37,3 +40,19 @@ class StripeEventAdmin(admin.ModelAdmin):
     list_display = ("event_id", "type", "received_at")
     search_fields = ("event_id",)
     readonly_fields = ("event_id", "type", "received_at")
+
+
+@admin.register(WaitlistEntry)
+class WaitlistEntryAdmin(admin.ModelAdmin):
+    list_display = ("email", "program", "workshop", "created_at", "notified_at")
+    list_filter = ("program", "workshop", ("notified_at", admin.EmptyFieldListFilter))
+    search_fields = ("email",)
+    list_select_related = ("program", "workshop")
+    readonly_fields = ("created_at", "notified_at")
+    raw_id_fields = ("user",)
+    actions = ["email_seat_open"]
+
+    @admin.action(description="Email them: a seat is open (once per person)")
+    def email_seat_open(self, request, queryset):
+        sent = waitlist.notify(queryset)
+        self.message_user(request, f"{sent} email(s) sent. People already told were skipped.", messages.SUCCESS)
