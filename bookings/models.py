@@ -148,3 +148,20 @@ class WaitlistEntry(models.Model):
 
     def __str__(self):
         return f"{self.email} · {self.program or self.workshop}"
+
+
+class Reflection(models.Model):
+    """A member's private note on a session. Only they can see it."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="reflections")
+    text = models.TextField(max_length=2000)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "session"], name="one_reflection_per_session"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} · {self.session}"

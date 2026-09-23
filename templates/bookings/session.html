@@ -11,6 +11,7 @@
       <span class="serif title">{{ program.title }}</span>
       <span class="small muted">{{ cohort.name }} · {{ done_count }} of {{ total }} sessions done</span>
       <a class="small" href="{% url 'bookings:cohort_calendar' cohort.pk %}">Add all sessions to your calendar</a>
+      <a class="small" href="{% url 'bookings:thread' cohort.pk %}">Your thread →</a>
     </div>
     <ol>
       {% for node in nodes %}
@@ -63,6 +64,19 @@
       </div>
       {% endif %}
     </div>
+
+    <section id="reflection" class="reflection" aria-labelledby="reflection-title">
+      <div class="panel-row">
+        <h2 id="reflection-title">Your reflection</h2>
+        <span class="small muted">Only you can see this{% if reflection_saved_at %} · saved {{ reflection_saved_at|date:"j M, H:i" }}{% endif %}</span>
+      </div>
+      <form method="post" action="{% url 'bookings:save_reflection' session.pk %}" class="stack gap-12">
+        {% csrf_token %}
+        <label class="visually-hidden" for="{{ reflection_form.text.id_for_label }}">Your reflection on {{ session.title }}</label>
+        {{ reflection_form.text }}
+        <div><button class="btn btn-ghost" type="submit">Save</button></div>
+      </form>
+    </section>
 
     {% if recap %}
     <section class="recap" aria-labelledby="recap-title">

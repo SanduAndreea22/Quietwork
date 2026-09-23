@@ -57,6 +57,7 @@
         </li>
         {% endfor %}
       </ol>
+      <a class="small" href="{% url 'bookings:thread' p.cohort.pk %}">Your thread so far →</a>
       {% with e=p.enrollment %}
       {% if e.payment_problem %}
         <p class="foot warn">Your last monthly payment didn't go through. Stripe will try again. If your card has changed, please get in touch.</p>
@@ -74,7 +75,10 @@
           <span class="serif title" style="font-size: 28px">{{ p.program.title }}</span>
           <span class="muted">{{ p.cohort.name }} · finished · {{ p.done_count }} of {{ p.total }} · recordings and notes stay here</span>
         </div>
-        <a class="btn btn-ghost" href="{{ p.open_url }}">Rewatch</a>
+        <div class="panel-actions">
+          <a class="btn btn-ghost" href="{{ p.open_url }}">Rewatch</a>
+          <a class="btn btn-progress" href="{% url 'bookings:thread' p.cohort.pk %}">See your thread</a>
+        </div>
       </div>
     </article>
     {% endfor %}

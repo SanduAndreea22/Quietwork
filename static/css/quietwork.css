@@ -426,3 +426,24 @@ details.item:hover { box-shadow: inset 0 0 0 1px var(--sage); }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .pill-link { text-decoration: none; position: relative; z-index: 2; }
 .pill-link:hover { background: var(--ink); color: var(--oat); }
+
+/* ---------- Reflection and "Your thread" ---------- */
+.reflection { background: var(--white); border-radius: 22px; padding: 28px 32px; display: flex; flex-direction: column; gap: 16px; }
+.reflection h2 { font-size: 26px; }
+.reflection textarea { width: 100%; font: 17px/1.6 var(--serif); font-style: italic; color: var(--ink); background: var(--oat); border: 1px solid var(--sage); border-radius: 14px; padding: 16px 18px; resize: vertical; min-height: 120px; }
+.reflection textarea:focus { outline: 2px solid var(--moss); outline-offset: 1px; background: var(--white); }
+.thread-page { padding-top: 32px; padding-bottom: 120px; display: flex; flex-direction: column; gap: 36px; max-width: 1100px; }
+.thread-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin: 0; background: var(--white); border-radius: 22px; padding: 26px 32px; }
+.thread-stats div { display: flex; flex-direction: column; gap: 4px; }
+.thread-stats dd { margin: 0; font-family: var(--serif); font-size: 26px; color: var(--moss); }
+.thread-art { margin: 0; background: var(--oat); border: 1px solid var(--sage); border-radius: 28px; overflow-x: auto; overflow-y: hidden; }
+.thread-art svg { display: block; width: 100%; min-width: 640px; height: auto; }
+@keyframes node-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.motion .thread-art .thread-node { opacity: 0; animation: node-in .8s ease-out forwards; animation-delay: calc(.6s + var(--i) * .28s); }
+.motion .thread-art .thread-all, .motion .thread-art .thread-walked { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); }
+.motion .thread-art.drawing .thread-all { transition: stroke-dashoffset 3.2s cubic-bezier(.4, .1, .2, 1); stroke-dashoffset: 0; }
+.motion .thread-art.drawing .thread-walked { transition: stroke-dashoffset 3s .5s cubic-bezier(.4, .1, .2, 1); stroke-dashoffset: 0; }
+@media (max-width: 860px) {
+  .thread-stats { grid-template-columns: minmax(0, 1fr); padding: 20px; }
+  .reflection { padding: 22px 18px; }
+}

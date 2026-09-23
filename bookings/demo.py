@@ -22,9 +22,26 @@ from catalog.demo_content import (
 )
 from catalog.models import Session, Workshop
 
-from .models import Enrollment, SeatBase, SessionCompletion, WorkshopBooking
+from .models import Enrollment, Reflection, SeatBase, SessionCompletion, WorkshopBooking
 
 SESSION_KEY = "demo_join_open"
+
+# What the demo member 'wrote' (fictional, like everything in the demo).
+SAMPLE_REFLECTIONS = {
+    FINISHED_PROGRAM_SLUG: {
+        1: "I always start big. This time: two minutes of stretching after I put the kettle on.",
+        2: "Made it smaller again. One page, not one chapter.",
+        3: "Coffee first, then the notebook. It holds when it's tied to something I already do.",
+        5: "Missed three days and didn't throw the whole thing away. That's new for me.",
+        6: "Second habit: the phone stays in the hall after ten.",
+        8: "It's quieter than I expected. Still doing it.",
+    },
+    DEMO_PROGRAM_SLUG: {
+        1: "I said yes to three things before lunch without noticing.",
+        2: "My list of drains is mostly other people's deadlines.",
+        4: "Tried 'let me check' with my manager. He just said sure.",
+    },
+}
 MINUTES_BEFORE = 10
 
 
@@ -60,6 +77,7 @@ def create_demo_member():
             instalments_paid=1, amount_paid_cents=running.program.instalment_cents, paid_at=running.starts_at,
         )
         _complete(user, running.sessions.filter(starts_at__lt=now))
+        _reflect(user, running)
 
     finished = finished_cohorts(now).filter(program__slug=FINISHED_PROGRAM_SLUG).order_by("-starts_at").first()
     if finished:
@@ -67,7 +85,9 @@ def create_demo_member():
             user=user, cohort=finished, plan=Enrollment.Plan.FULL, status=SeatBase.Status.ACTIVE,
             amount_paid_cents=finished.program.price_full_cents, paid_at=finished.starts_at,
         )
-        _complete(user, finished.sessions.all())
+        # Seven of eight ticked off: real people miss one sometimes.
+        _complete(user, finished.sessions.exclude(topic__number=4))
+        _reflect(user, finished)
 
     workshop = Workshop.objects.filter(is_published=True, starts_at__gt=now).order_by("starts_at").first()
     if workshop:
@@ -76,6 +96,15 @@ def create_demo_member():
             amount_paid_cents=workshop.price_cents, paid_at=now,
         )
     return user
+
+
+def _reflect(user, cohort):
+    notes = SAMPLE_REFLECTIONS.get(cohort.program.slug, {})
+    Reflection.objects.bulk_create([
+        Reflection(user=user, session=s, text=notes[s.topic.number])
+        for s in cohort.sessions.select_related("topic").filter(starts_at__lt=timezone.now())
+        if s.topic.number in notes
+    ])
 
 
 def _complete(user, sessions):

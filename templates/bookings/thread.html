@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Your thread · {{ program.title }} · Quietwork{% endblock %}
+{% block content %}
+<div class="wrap thread-page">
+  <a class="small" href="{% url 'bookings:my_programs' %}" style="text-decoration: none">← My programs</a>
+  <section class="welcome-hero">
+    <p class="eyebrow">{% if finished %}Your thread{% else %}Your thread so far{% endif %}</p>
+    <h1>{% if finished %}{{ total }} evenings, <em>one thread.</em>{% else %}It fills in <em>as you go.</em>{% endif %}</h1>
+    <p class="lead">{% if finished %}This is {{ program.title }} the way you walked it: the sessions you ticked off, and a line from what you wrote along the way. Nobody else has this one.{% else %}Each session you tick off turns the thread blue, and each reflection you write shapes it. At the end of the program it's yours to keep.{% endif %}</p>
+  </section>
+
+  <dl class="thread-stats">
+    <div><dt class="eyebrow">Evenings</dt><dd>{{ done }} of {{ total }}</dd></div>
+    <div><dt class="eyebrow">Reflections</dt><dd>{{ reflections_count }}</dd></div>
+    <div><dt class="eyebrow">Group</dt><dd>{{ cohort.name }}</dd></div>
+  </dl>
+
+  <figure class="thread-art" data-thread-art>
+    {{ svg|safe }}
+  </figure>
+
+  <div class="welcome-actions">
+    <a class="btn btn-primary" href="{% url 'bookings:thread_svg' cohort.pk %}">Save as image</a>
+    <a class="btn btn-ghost" href="{% url 'bookings:my_programs' %}">Back to my programs</a>
+  </div>
+  <p class="small muted">Your reflections stay private. The image is only saved when you download it.</p>
+</div>
+{% endblock %}

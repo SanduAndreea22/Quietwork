@@ -98,3 +98,16 @@
     });
   });
 })();
+
+// "Your thread": the line draws itself, then the sessions appear along it.
+(function () {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-thread-art]").forEach(function (fig) {
+      fig.querySelectorAll("path").forEach(function (p) {
+        p.style.setProperty("--len", Math.ceil(p.getTotalLength()));
+      });
+      requestAnimationFrame(function () { requestAnimationFrame(function () { fig.classList.add("drawing"); }); });
+    });
+  });
+})();

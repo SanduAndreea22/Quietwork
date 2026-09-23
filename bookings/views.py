@@ -20,9 +20,10 @@ from catalog.selectors import next_open_cohorts
 from . import services, stripe_gateway, waitlist
 from .calendar import calendar_response, session_events, workshop_event
 from .demo import effective_now, is_demo_user
-from .forms import ReserveForm, WaitlistForm
-from .models import Enrollment, SeatBase, SessionCompletion, StripeEvent, WorkshopBooking
+from .forms import ReflectionForm, ReserveForm, WaitlistForm
+from .models import Enrollment, Reflection, SeatBase, SessionCompletion, StripeEvent, WorkshopBooking
 from .progress import build_dashboard, build_session_page
+from .thread_art import build_thread
 from .welcome import build_welcome, find_seat
 
 logger = logging.getLogger(__name__)
@@ -180,7 +181,60 @@ def session_detail(request, session_id):
     context = build_session_page(request.user, session, effective_now(request))
     context["time_travel"] = _time_travelling(request)
     context["just_done"] = request.session.pop("just_done", None)
+    reflection = Reflection.objects.filter(user=request.user, session=session).first()
+    context["reflection_form"] = ReflectionForm(initial={"text": reflection.text if reflection else ""})
+    context["reflection_saved_at"] = reflection.updated_at if reflection else None
     return render(request, "bookings/session.html", context)
+
+
+@login_required
+@require_POST
+def save_reflection(request, session_id):
+    session = _session_for_member(request.user, session_id)
+    form = ReflectionForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "That's a bit long: please keep it under 2000 characters.")
+    elif form.cleaned_data["text"].strip():
+        Reflection.objects.update_or_create(
+            user=request.user, session=session, defaults={"text": form.cleaned_data["text"].strip()}
+        )
+        messages.success(request, "Saved. Only you can see this.")
+    else:
+        Reflection.objects.filter(user=request.user, session=session).delete()
+    return redirect(session.get_absolute_url() + "#reflection")
+
+
+def _thread_for(request, cohort_id):
+    enrollment = get_object_or_404(
+        Enrollment.objects.active().select_related("cohort__program"), user=request.user, cohort_id=cohort_id
+    )
+    cohort = enrollment.cohort
+    sessions = list(cohort.sessions.select_related("topic").order_by("starts_at"))
+    if not sessions:
+        raise Http404
+    done_ids = set(
+        SessionCompletion.objects.filter(user=request.user, session__in=sessions).values_list("session_id", flat=True)
+    )
+    reflections = dict(
+        Reflection.objects.filter(user=request.user, session__in=sessions).values_list("session_id", "text")
+    )
+    thread = build_thread(request.user, cohort, sessions, done_ids, reflections)
+    thread["finished"] = sessions[-1].ends_at <= timezone.now()
+    return cohort, thread
+
+
+@login_required
+def your_thread(request, cohort_id):
+    cohort, thread = _thread_for(request, cohort_id)
+    return render(request, "bookings/thread.html", {"cohort": cohort, "program": cohort.program, **thread})
+
+
+@login_required
+def your_thread_svg(request, cohort_id):
+    cohort, thread = _thread_for(request, cohort_id)
+    response = HttpResponse(thread["svg"], content_type="image/svg+xml; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="my-thread-{cohort.program.slug}.svg"'
+    return response
 
 
 @login_required

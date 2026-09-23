@@ -18,3 +18,10 @@ class WaitlistForm(forms.Form):
 
     def is_bot(self):
         return bool(self.cleaned_data.get("website"))
+
+
+class ReflectionForm(forms.Form):
+    text = forms.CharField(
+        label="Your reflection", required=False, max_length=2000,
+        widget=forms.Textarea(attrs={"rows": 5, "placeholder": "What stayed with you? One line is enough."}),
+    )
